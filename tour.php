@@ -106,14 +106,14 @@ function output_tour_button() {
 	<div id="tour-launcher" style="display: none;">
 		<span class="dashicons dashicons-admin-site-alt3">
 		</span>
+		<span id="tour-title"></span>
 	</div>
 	<script>
 		function enable_tour_if_cookie_is_set() {
 			var tour_name = document.cookie.indexOf('tour=') > -1 ? document.cookie.split('tour=')[1].split(';')[0] : '';
 			if ( tour_name ) {
-				var launcher = document.querySelector('#tour-launcher');
-				launcher.style.display = 'block';
-				launcher.appendChild(document.createTextNode(tour_name));
+				document.querySelector('#tour-launcher').style.display = 'block';
+				document.querySelector('#tour-title').textContent = tour_name;
 			}
 		}
 		enable_tour_if_cookie_is_set();
