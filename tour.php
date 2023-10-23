@@ -10,6 +10,8 @@
  * License: GPLv2 or later
  */
 
+defined( 'ABSPATH' ) or die();
+
 function tour_enqueue_scripts() {
 	wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
 	wp_register_style( 'tour-css', plugins_url( 'assets/css/style.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/style.css' ) );
@@ -21,6 +23,7 @@ function tour_enqueue_scripts() {
 	wp_localize_script( 'tour', 'wp_tour', apply_filters( 'wp_tour', array() ) );
 	wp_localize_script( 'tour', 'wp_tour_settings', array(
 		'nonce' => wp_create_nonce( 'wp_rest' ),
+		'rest_url' => rest_url(),
 	));
 }
 
@@ -36,15 +39,15 @@ function tour_register_post_type() {
 		'supports' => array( 'title', 'editor' ),
 	) );
 }
+add_action( 'init', 'tour_register_post_type' );
 
 add_action( 'rest_api_init', function() {
 	register_rest_route( 'tour/v1', 'create', array(
 		'methods' => 'POST',
 		'callback' => function( WP_REST_Request $request ) {
-			$tour = $request->get_param('tour');
-			$steps = json_decode( $tour, true );
+			$tour_content = $request->get_param('tour');
+			$steps = json_decode( $tour_content, true );
 			$tour_title = $steps[0]['title'];
-
 			// check if the tour already exists
 			$tour = get_page_by_title( $tour_title, OBJECT, 'tour' );
 			if ( $tour ) {
@@ -204,7 +207,7 @@ function output_tour_button() {
 
 					// store the tours on the server
 					var xhr = new XMLHttpRequest();
-					xhr.open('POST', '/wp-json/tour/v1/create');
+					xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/create');
 					xhr.setRequestHeader('Content-Type', 'application/json');
 					xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
 					xhr.send(JSON.stringify({
