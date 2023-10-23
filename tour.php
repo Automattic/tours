@@ -24,7 +24,8 @@ function tour_enqueue_scripts() {
 add_action( 'wp_enqueue_scripts', 'tour_enqueue_scripts' );
 
 add_filter( 'gp_tour', function( ) {
-	return array(
+	return array();
+	array(
 		'ui-intro' => [
 			[
 				'title' => 'WordPress Introduction Tour',
@@ -139,7 +140,10 @@ function output_tour_button() {
 
 			if ( ! tourSelectorActive && tourSteps.length > 1 ) {
 				if (confirm('Finished?')) {
-				console.log( tourSteps );
+				window.tour[document.cookie.split('tour=')[1].split(';')[0]] = tourSteps;
+				console.log( window.tour );
+				window.loadTour();
+				document.querySelector('#tour-launcher').style = "display: none";
 				}
 				return false;
 			}
@@ -206,7 +210,7 @@ function output_tour_button() {
 				if ( stepName ) {
 					tourSteps.push({
 						selector: selectors.join(' '),
-						title: stepName,
+						html: stepName,
 					});
 
 					console.log(tourSteps);
