@@ -24,8 +24,7 @@ function tour_enqueue_scripts() {
 add_action( 'wp_enqueue_scripts', 'tour_enqueue_scripts' );
 
 add_filter( 'gp_tour', function( ) {
-	return array();
-	array(
+	return array(
 		'ui-intro' => [
 			[
 				'title' => 'WordPress Introduction Tour',
@@ -126,7 +125,10 @@ function output_tour_button() {
 				document.querySelector('#tour-title').textContent = tour_name;
 				tourSelectorActive = ! tourSelectorActive;
 				document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
-				tourSteps.push({title: tour_name});
+				tourSteps.push({
+					title: tour_name,
+					color: '#3939c7',
+				});
 			}
 		}
 		enable_tour_if_cookie_is_set();

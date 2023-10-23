@@ -32,8 +32,10 @@ jQuery( document ).ready(
 			var pulse = jQuery( '<div class="pulse tour-' + tourName + '">' );
 			var cssString = '';
 			div.data( 'tourname', tourName ).data( 'tourindex', index ).data( 'popover-content', item.html );
-			field.wrap( div );
-			field.parent().append( pulse );
+			if ( ! field.closest('.pulse-wrapper').length ) {
+				field.wrap( div );
+				field.parent().append( pulse );
+			}
 			if ( typeof item.css !== 'undefined' ) {
 				cssString = cssObjectToString( item.css );
 				jQuery( item.selector ).closest( '.pulse-wrapper' ).css( 'cssText', cssString );
