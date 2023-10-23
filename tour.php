@@ -202,8 +202,6 @@ function output_tour_button() {
 			if ( ! tourSelectorActive && tourSteps.length > 1 ) {
 				if (confirm('Finished?')) {
 					window.tour[tourSteps[0].title] = tourSteps;
-					console.log( window.tour );
-					window.loadTour();
 
 					// store the tours on the server
 					var xhr = new XMLHttpRequest();
@@ -213,6 +211,10 @@ function output_tour_button() {
 					xhr.send(JSON.stringify({
 						tour: JSON.stringify(tourSteps),
 					}));
+
+					console.log( window.tour );
+					window.loadTour();
+
 				}
 				return false;
 			}
