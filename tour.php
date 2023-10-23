@@ -101,6 +101,10 @@ function output_tour_button() {
 			position: fixed;
 			bottom: 76px;
 			right: 24px;
+			cursor: pointer;
+		}
+		#tour-launcher.active {
+			color: green;
 		}
 	</style>
 	<div id="tour-launcher" style="display: none;">
@@ -109,25 +113,22 @@ function output_tour_button() {
 		<span id="tour-title"></span>
 	</div>
 	<script>
+		var tourSelectorActive = false;
+		var tourStep = false;
 		function enable_tour_if_cookie_is_set() {
 			var tour_name = document.cookie.indexOf('tour=') > -1 ? document.cookie.split('tour=')[1].split(';')[0] : '';
 			if ( tour_name ) {
 				document.querySelector('#tour-launcher').style.display = 'block';
 				document.querySelector('#tour-title').textContent = tour_name;
 				tourSelectorActive = ! tourSelectorActive;
+				document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
 			}
 		}
 		enable_tour_if_cookie_is_set();
-		var tourSelectorActive = false;
-		var tourStep = false;
 
 		document.addEventListener('mouseover', function(event) {
 			var target = event.target;
-			if ( target.closest('#tour-launcher') ) {
-				tourSelectorActive = ! tourSelectorActive;
-				return;
-			}
-			if ( tourSelectorActive ) {
+			if ( ! tourSelectorActive || target.closest('#tour-launcher') ) {
 				clearHighlight(target);
 				return;
 			}
@@ -169,11 +170,17 @@ function output_tour_button() {
 			}
 			// Show CSS selectors on click
 			target.addEventListener('click', function(event) {
+				if ( event.target.closest('#tour-launcher') ) {
+					tourSelectorActive = ! tourSelectorActive;
+					document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
+					return;
+				}
+
 				if ( ! tourSelectorActive ) {
 					return;
 				}
 
-				event.stopPropagation();
+				event.preventDefault();
 
 				var selectors = getSelectors(this);
 
