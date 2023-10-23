@@ -116,6 +116,7 @@ function output_tour_button() {
 				launcher.appendChild(document.createTextNode(tour_name));
 			}
 		}
+		enable_tour_if_cookie_is_set();
 	</script>
 <?php
 }
