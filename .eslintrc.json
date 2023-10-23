@@ -1,0 +1,12 @@
+{
+  "extends": [
+    "plugin:@wordpress/eslint-plugin/recommended",
+    "plugin:@wordpress/eslint-plugin/i18n"
+  ],
+  "rules": {
+    "computed-property-spacing": [
+      "error",
+      "always"
+    ]
+  }
+}
