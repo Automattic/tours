@@ -122,6 +122,7 @@ function output_tour_button() {
         const highlightCss = `
             *:hover {
                 border: 1px solid red;
+                cursor: pointer;
             }
         `;
 
