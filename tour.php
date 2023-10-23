@@ -117,10 +117,26 @@ function output_tour_button() {
 			}
 		}
 		enable_tour_if_cookie_is_set();
+
+        const tourLauncher = document.querySelector('#tour-launcher');
+        const highlightCss = `
+            *:hover {
+                border: 1px solid red;
+            }
+        `;
+
+        const highlightStyleElement = document.head.appendChild(document.createElement("style"));
+        highlightStyleElement.innerHTML = '';
+        tourLauncher.addEventListener('click', () => {
+            if (highlightStyleElement.innerHTML === '') {
+                highlightStyleElement.innerHTML = highlightCss;
+            } else {
+                highlightStyleElement.innerHTML = '';
+            }
+        });
 	</script>
 <?php
 }
 
 add_action( 'wp_footer', 'output_tour_button' );
 add_action( 'admin_footer', 'output_tour_button' );
-
