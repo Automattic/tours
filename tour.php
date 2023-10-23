@@ -47,6 +47,38 @@ add_filter( 'gp_tour', function( ) {
 	);
 } );
 
+function tour_add_admin_menu() {
+	add_menu_page( 'Tour', 'Tour', 'manage_options', 'tour', 'tour_admin_create_tour', 'dashicons-admin-site-alt3', 6 );
+	add_submenu_page( 'tour', 'Create a new tour', 'Create a new tour', 'manage_options', 'tour-create', 'tour_admin_create_tour' );
+	add_submenu_page( 'tour', 'View all tours', 'View all tours', 'manage_options', 'tour-view', 'tour_admin_view_tours' );
+	add_submenu_page( 'tour', 'Settings', 'Settings', 'manage_options', 'tour-settings', 'tour_admin_settings' );
+}
+
+add_action( 'admin_menu', 'tour_add_admin_menu' );
+function tour_admin_create_tour() {
+	?>
+<div id="wrap"><form>
+	<h1><?php esc_html_e( 'Create a new tour', 'tour' ); ?></h1>
+	<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row"><label for="tour_title"><?php esc_html_e( 'Title', 'tour' ); ?></label></th>
+				<td>
+					<input type="text" name="tour_title" id="tour_title" value="" class="regular-text" />
+					<p class="description"><?php esc_html_e( 'The title of the tour.', 'tour' ); ?></p>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<button id="create-tour">Start creating the tour</button>
+
+</form></div><?php
+}
+
+function tour_admin_view_tours() {}
+function tour_admin_settings() {}
+
 add_action( 'wp_footer', function() {
 ?>
 	<style>
