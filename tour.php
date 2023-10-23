@@ -118,23 +118,61 @@ function output_tour_button() {
 		}
 		enable_tour_if_cookie_is_set();
 
-        const tourLauncher = document.querySelector('#tour-launcher');
-        const highlightCss = `
-            *:hover {
-                border: 1px solid red;
-                cursor: pointer;
-            }
-        `;
+		document.addEventListener('mouseover', function(event) {
+		  var target = event.target;
 
-        const highlightStyleElement = document.head.appendChild(document.createElement("style"));
-        highlightStyleElement.innerHTML = '';
-        tourLauncher.addEventListener('click', () => {
-            if (highlightStyleElement.innerHTML === '') {
-                highlightStyleElement.innerHTML = highlightCss;
-            } else {
-                highlightStyleElement.innerHTML = '';
-            }
-        });
+		  // Highlight the element on hover
+		  target.style.outline = '2px solid red';
+
+		  // Clear the previous highlighting when moving to a new element
+		  function clearHighlight() {
+		    target.style.outline = '';
+		  }
+
+		  // Generate CSS selectors for the clicked element
+		  function getSelectors(elem) {
+		    var selectors = [];
+
+		    // Find CSS class selector
+		    if (elem.className) {
+		      selectors.push('.' + elem.className.trim().replace(/(\s+)/g, '.'));
+		    }
+
+		    // Find ID selector
+		    if (elem.id) {
+		      selectors.push('#' + elem.id);
+		    }
+
+		    // Find DOM nesting selectors
+		    while(elem.parentElement) {
+		      var currentElement = elem.parentElement;
+		      var tagName = elem.tagName.toLowerCase();
+		      var index = Array.prototype.indexOf.call(currentElement.children, elem) + 1;
+
+		      selectors.push(tagName + ':nth-child(' + index + ')');
+
+		      elem = currentElement;
+		    }
+
+		    return selectors.reverse();
+		  }
+
+		  // Show CSS selectors on click
+		  target.addEventListener('click', function(event) {
+		    event.stopPropagation();
+
+		    var selectors = getSelectors(this);
+
+		    // Display the selectors in an alert box
+		    alert('CSS Selectors:\n' + selectors.join('\n'));
+
+		    // Remove the highlighting
+		    clearHighlight();
+		  });
+
+		  // Clear the highlighting when mouseout
+		  target.addEventListener('mouseout', clearHighlight);
+		}, false);
 	</script>
 <?php
 }
