@@ -16,39 +16,73 @@ function tour_enqueue_scripts() {
 	wp_enqueue_style( 'driver-js');
 	wp_enqueue_style(   'tour-css' );
 	wp_enqueue_script( 'driver-js', plugins_url( 'assets/js/driver-js.js', __FILE__ ), array(), filemtime( __DIR__ . '/assets/js/driver-js.js' ), array( 'in_footer' => true ) );
-	wp_register_script( 'gp-tour', plugins_url( 'assets/js/tour.js', __FILE__ ), array( 'jquery', 'driver-js' ), filemtime( __DIR__ . '/assets/js/tour.js' ), false );
-	wp_enqueue_script( 'gp-tour');
-	wp_localize_script( 'gp-tour', 'gp_tour', apply_filters( 'gp_tour', array() ) );
+	wp_register_script( 'tour', plugins_url( 'assets/js/tour.js', __FILE__ ), array( 'jquery', 'driver-js' ), filemtime( __DIR__ . '/assets/js/tour.js' ), false );
+	wp_enqueue_script( 'tour');
+	wp_localize_script( 'tour', 'wp_tour', apply_filters( 'wp_tour', array() ) );
+	wp_localize_script( 'tour', 'wp_tour_settings', array(
+		'nonce' => wp_create_nonce( 'wp_rest' ),
+	));
 }
 
 add_action( 'wp_enqueue_scripts', 'tour_enqueue_scripts' );
 
-add_filter( 'gp_tour', function( ) {
-	return array(
-		'ui-intro' => [
-			[
-				'title' => 'WordPress Introduction Tour',
-				'color' => '#3939c7',
-			],
-			[
-				'selector' => '.wp-block-post-title',
-				'html' => 'This is the post title.'
-			],
-			[
-				'selector' => '.wp-block-post-excerpt__excerpt',
-				'html' => 'This is the post excerpt.'
-			],
-			[
-				'selector' => '.wp-block-post-date',
-				'html' => 'And this is the post date, when we published this post.'
-			],
-			[
-				'selector' => '.wp-block-column.is-layout-flow.wp-block-column-is-layout-flow',
-				'html' => 'Do you want to contact us? Click here.',
-			]
-		],
+// register custom post type
+function tour_register_post_type() {
+	register_post_type( 'tour', array(
+		'label' => 'Tours',
+		'public' => false,
+		'show_ui' => true,
+		'show_in_menu' => 'tour',
+		'supports' => array( 'title', 'editor' ),
+	) );
+}
 
-	);
+add_action( 'rest_api_init', function() {
+	register_rest_route( 'tour/v1', 'create', array(
+		'methods' => 'POST',
+		'callback' => function( WP_REST_Request $request ) {
+			$tour = $request->get_param('tour');
+			$steps = json_decode( $tour, true );
+			$tour_title = $steps[0]['title'];
+
+			// check if the tour already exists
+			$tour = get_page_by_title( $tour_title, OBJECT, 'tour' );
+			if ( $tour ) {
+				// update the tour
+				$tour_id = $tour->ID;
+				wp_update_post( array(
+					'ID' => $tour_id,
+					'post_content' => $tour_content,
+				) );
+			} else {
+				// create the tour
+				$tour_id = wp_insert_post( array(
+					'post_title' => $tour_title,
+					'post_content' => $tour_content,
+					'post_type' => 'tour',
+					'post_status' => 'publish',
+				) );
+			}
+
+			return $tour_id;
+		},
+	) );
+} );
+
+
+add_filter( 'wp_tour', function( $tour ) {
+	$tours = get_posts( array(
+		'post_type' => 'tour',
+		'posts_per_page' => -1,
+	) );
+
+	foreach ( $tours as $_tour ) {
+		$tour_steps = json_decode( $_tour->post_content, true );
+		$tour_name = $tour_steps[0]['title'];
+		$tour[$tour_name] = $tour_steps;
+	}
+
+	return $tour;
 } );
 function tour_add_admin_menu() {
 	add_menu_page( 'Tour', 'Tour', 'manage_options', 'tour', 'tour_admin_create_tour', 'dashicons-admin-site-alt3', 6 );
@@ -67,8 +101,15 @@ function tour_admin_create_tour() {
 			<tr>
 				<th scope="row"><label for="tour_title"><?php esc_html_e( 'Title', 'tour' ); ?></label></th>
 				<td>
-					<input type="text" name="tour_title" id="tour_title" value="" class="regular-text" />
+					<input type="text" name="tour_title" id="tour_title" value="Test" class="regular-text" required />
 					<p class="description"><?php esc_html_e( 'The title of the tour.', 'tour' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="tour_color"><?php esc_html_e( 'Color', 'tour' ); ?></label></th>
+				<td>
+					<input type="color" name="tour_color" id="tour_color" value="#3939c7" class="regular-text" required />
+					<p class="description"><?php esc_html_e( 'The color of the tour.', 'tour' ); ?></p>
 				</td>
 			</tr>
 		</tbody>
@@ -81,11 +122,10 @@ function tour_admin_create_tour() {
 		document.querySelector('#create-tour').addEventListener('submit', function(e) {
 			e.preventDefault();
 			var tourTitle = document.querySelector('#tour_title').value;
-			if ( ! tourTitle ) {
-				alert( 'Please enter a title for the tour' );
-				return;
-			}
+			var tourColor = document.querySelector('#tour_color').value;
+			console.log( tourColor );
 			document.cookie = 'tour=' + escape( tourTitle ) + ';path=/';
+			document.cookie = 'tour_color=' + escape( tourColor ) + ';path=/';
 			enable_tour_if_cookie_is_set();
 		});
 
@@ -94,7 +134,28 @@ function tour_admin_create_tour() {
 <?php
 }
 
-function tour_admin_view_tours() {}
+function tour_admin_view_tours() {
+	$tours = get_posts( array(
+		'post_type' => 'tour',
+		'posts_per_page' => -1,
+	) );
+
+	?><ul><?php
+	foreach ( $tours as $_tour ) {
+		$tour_steps = json_decode( $_tour->post_content, true );
+		$tour_name = $tour_steps[0]['title'];
+		$tour_color = $tour_steps[0]['color'];
+		?>
+		<li>
+			<a href="<?php echo esc_url( admin_url( 'admin.php?page=tour&tour=' . $_tour->ID ) ); ?>"><?php echo esc_html( $tour_name ); ?></a>
+			<span style="background-color: <?php echo esc_attr( $tour_color ); ?>; width: 20px; height: 20px; display: inline-block;"></span>
+			<?php echo count( $tour_steps ); ?> steps
+			(<?php echo esc_html( $_tour->post_date ); ?>)
+
+		</li>
+		<?php
+	}
+}
 function tour_admin_settings() {}
 
 function output_tour_button() {
@@ -106,9 +167,6 @@ function output_tour_button() {
 			right: 24px;
 			cursor: pointer;
 		}
-		#tour-launcher.active {
-			color: green;
-		}
 	</style>
 	<div id="tour-launcher" style="display: none;">
 		<span class="dashicons dashicons-admin-site-alt3">
@@ -119,16 +177,15 @@ function output_tour_button() {
 		var tourSelectorActive = false;
 		var tourSteps = [];
 		function enable_tour_if_cookie_is_set() {
-			var tour_name = document.cookie.indexOf('tour=') > -1 ? document.cookie.split('tour=')[1].split(';')[0] : '';
+			var tour_name = document.cookie.indexOf('tour=') > -1 ? unescape(document.cookie.split('tour=')[1].split(';')[0]) : '';
+			var tour_color = document.cookie.indexOf('tour_color=') > -1 ? unescape(document.cookie.split('tour_color=')[1].split(';')[0]) : '';
 			if ( tour_name ) {
 				document.querySelector('#tour-launcher').style.display = 'block';
 				document.querySelector('#tour-title').textContent = tour_name;
-				tourSelectorActive = ! tourSelectorActive;
-				document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
-				tourSteps.push({
+				tourSteps=[{
 					title: tour_name,
-					color: '#3939c7',
-				});
+					color: tour_color,
+				}];
 			}
 		}
 		enable_tour_if_cookie_is_set();
@@ -136,15 +193,23 @@ function output_tour_button() {
 		function toggleTourSelector( event ) {
 			event.stopPropagation();
 			tourSelectorActive = ! tourSelectorActive;
-			console.log( tourSelectorActive? 'disabled' : 'enabled' );
 
-			document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
+			document.querySelector('#tour-launcher').style.color = tourSelectorActive ? tourSteps[0].color : '';
 
 			if ( ! tourSelectorActive && tourSteps.length > 1 ) {
 				if (confirm('Finished?')) {
-					window.tour[document.cookie.split('tour=')[1].split(';')[0]] = tourSteps;
+					window.tour[tourSteps[0].title] = tourSteps;
 					console.log( window.tour );
 					window.loadTour();
+
+					// store the tours on the server
+					var xhr = new XMLHttpRequest();
+					xhr.open('POST', '/wp-json/tour/v1/create');
+					xhr.setRequestHeader('Content-Type', 'application/json');
+					xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+					xhr.send(JSON.stringify({
+						tour: JSON.stringify(tourSteps),
+					}));
 				}
 				return false;
 			}
@@ -165,7 +230,8 @@ function output_tour_button() {
 				return;
 			}
 			// Highlight the element on hover
-			target.style.outline = '2px solid red';
+			target.style.outline = '2px solid ' + tourSteps[0].color;
+			console.log( target.style.outline );
 			target.style.cursor = 'pointer';
 		};
 
@@ -179,24 +245,29 @@ function output_tour_button() {
 				var selectors = [];
 
 				// Find ID selector
-				if ( ! selectors && elem.id ) {
+				if ( elem.id ) {
 					selectors.push('#' + elem.id);
-				}
+				} else if ( elem.className ) {
+					selectors.push(elem.tagName.toLowerCase()+'.' + elem.className.trim().replace(/(\s+)/g, '.'));
+				} else {
+					// Find DOM nesting selectors
+					while ( elem.parentElement ) {
+						var currentElement = elem.parentElement;
+						var tagName = elem.tagName.toLowerCase();
 
-				// Find CSS class selector
-				if ( ! selectors && elem.className) {
-					selectors.push('.' + elem.className.trim().replace(/(\s+)/g, '.'));
-				}
+						if ( elem.id ) {
+							selectors.push( tagName + '#' + elem.id );
+							break;
+						} else if ( elem.className ) {
+							selectors.push( tagName + '.' + elem.className.trim().replace(/(\s+)/g, '.') );
 
-				// Find DOM nesting selectors
-				while ( elem.parentElement ) {
-					var currentElement = elem.parentElement;
-					var tagName = elem.tagName.toLowerCase();
-					var index = Array.prototype.indexOf.call(currentElement.children, elem) + 1;
+						} else {
+							var index = Array.prototype.indexOf.call(currentElement.children, elem) + 1;
+							selectors.push(tagName + ':nth-child(' + index + ')');
+						}
 
-					selectors.push(tagName + ':nth-child(' + index + ')');
-
-					elem = currentElement;
+						elem = currentElement;
+					}
 				}
 
 				return selectors.reverse();
@@ -207,8 +278,7 @@ function output_tour_button() {
 
 			var selectors = getSelectors(event.target);
 
-			// step name
-			var stepName = prompt( 'Enter html for step' + tourSteps.length );
+			var stepName = prompt( 'Enter html for step ' + tourSteps.length );
 			if ( stepName ) {
 				tourSteps.push({
 					selector: selectors.join(' '),
@@ -224,9 +294,15 @@ function output_tour_button() {
 			return false;
 		};
 
-		document.addEventListener('mouseover', tourStepHighlighter, false);
-		document.addEventListener('mouseout', clearHighlight, false);
-		document.addEventListener('click', tourStepSelector, false);
+		document.addEventListener('keyup', function(event) {
+			if ( event.keyCode === 27 ) {
+				tourSelectorActive = false;
+				document.querySelector('#tour-launcher').style.color = '';
+			}
+		});
+		document.addEventListener('mouseover', tourStepHighlighter);
+		document.addEventListener('mouseout', clearHighlight);
+		document.addEventListener('click', tourStepSelector);
 	</script>
 <?php
 }

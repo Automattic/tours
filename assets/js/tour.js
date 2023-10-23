@@ -49,7 +49,7 @@ jQuery( document ).ready(
 			} ).join( '; ' );
 		}
 
-		window.tour = gp_tour;
+		window.tour = wp_tour;
 		console.log( window.tour );
 		window.loadTour = function() {
 			var color1 = '';
