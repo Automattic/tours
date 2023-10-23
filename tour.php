@@ -189,12 +189,14 @@ function output_tour_button() {
 
 				// step name
 				var stepName = prompt( 'Enter step name' );
-				tourSteps.push({
-					selector: selectors.join(' '),
-					title: stepName,
-				});
+				if ( stepName ) {
+					tourSteps.push({
+						selector: selectors.join(' '),
+						title: stepName,
+					});
 
-				console.log(tourSteps);
+					console.log(tourSteps);
+				}
 
 				// Remove the highlighting
 				clearHighlight();
