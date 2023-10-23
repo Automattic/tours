@@ -49,7 +49,7 @@ add_filter( 'gp_tour', function( ) {
 
 function tour_add_admin_menu() {
 	add_menu_page( 'Tour', 'Tour', 'manage_options', 'tour', 'tour_admin_create_tour', 'dashicons-admin-site-alt3', 6 );
-	add_submenu_page( 'tour', 'Create a new tour', 'Create a new tour', 'manage_options', 'tour-create', 'tour_admin_create_tour' );
+	add_submenu_page( 'tour', 'Create a new tour', 'Create a new tour', 'manage_options', 'tour', 'tour_admin_create_tour' );
 	add_submenu_page( 'tour', 'View all tours', 'View all tours', 'manage_options', 'tour-view', 'tour_admin_view_tours' );
 	add_submenu_page( 'tour', 'Settings', 'Settings', 'manage_options', 'tour-settings', 'tour_admin_settings' );
 }
@@ -73,13 +73,28 @@ function tour_admin_create_tour() {
 
 	<button id="create-tour">Start creating the tour</button>
 
-</form></div><?php
+</form></div>
+	<script>
+		document.querySelector('#create-tour').addEventListener('click', function(e) {
+			e.preventDefault();
+			var tourTitle = document.querySelector('#tour_title').value;
+			if ( ! tourTitle ) {
+				alert( 'Please enter a title for the tour' );
+				return;
+			}
+			document.cookie = 'tour=' + escape( tourTitle ) + ';path=/';
+			enable_tour_if_cookie_is_set();
+		});
+
+	</script>
+
+<?php
 }
 
 function tour_admin_view_tours() {}
 function tour_admin_settings() {}
 
-add_action( 'wp_footer', function() {
+function output_tour_button() {
 ?>
 	<style>
 		#tour-launcher {
@@ -88,9 +103,23 @@ add_action( 'wp_footer', function() {
 			right: 24px;
 		}
 	</style>
-	<div id="tour-launcher" style="display: block;">
+	<div id="tour-launcher" style="display: none;">
 		<span class="dashicons dashicons-admin-site-alt3">
 		</span>
 	</div>
+	<script>
+		function enable_tour_if_cookie_is_set() {
+			var tour_name = document.cookie.indexOf('tour=') > -1 ? document.cookie.split('tour=')[1].split(';')[0] : '';
+			if ( tour_name ) {
+				var launcher = document.querySelector('#tour-launcher');
+				launcher.style.display = 'block';
+				launcher.appendChild(document.createTextNode(tour_name));
+			}
+		}
+	</script>
 <?php
-});
+}
+
+add_action( 'wp_footer', 'output_tour_button' );
+add_action( 'admin_footer', 'output_tour_button' );
+
