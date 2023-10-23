@@ -15,82 +15,231 @@ defined( 'ABSPATH' ) or die();
 function tour_enqueue_scripts() {
 	wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
 	wp_register_style( 'tour-css', plugins_url( 'assets/css/style.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/style.css' ) );
-	wp_enqueue_style( 'driver-js');
-	wp_enqueue_style(   'tour-css' );
+	wp_enqueue_style( 'driver-js' );
+	wp_enqueue_style( 'tour-css' );
 	wp_enqueue_script( 'driver-js', plugins_url( 'assets/js/driver-js.js', __FILE__ ), array(), filemtime( __DIR__ . '/assets/js/driver-js.js' ), array( 'in_footer' => true ) );
 	wp_register_script( 'tour', plugins_url( 'assets/js/tour.js', __FILE__ ), array( 'jquery', 'driver-js' ), filemtime( __DIR__ . '/assets/js/tour.js' ), false );
-	wp_enqueue_script( 'tour');
+	wp_enqueue_script( 'tour' );
 	wp_localize_script( 'tour', 'wp_tour', apply_filters( 'wp_tour', array() ) );
-	wp_localize_script( 'tour', 'wp_tour_settings', array(
-		'nonce' => wp_create_nonce( 'wp_rest' ),
-		'rest_url' => rest_url(),
-	));
+	wp_localize_script(
+		'tour',
+		'wp_tour_settings',
+		array(
+			'nonce'    => wp_create_nonce( 'wp_rest' ),
+			'rest_url' => rest_url(),
+		)
+	);
 }
 
 add_action( 'wp_enqueue_scripts', 'tour_enqueue_scripts' );
 
 // register custom post type
 function tour_register_post_type() {
-	register_post_type( 'tour', array(
-		'label' => 'Tours',
-		'public' => false,
-		'show_ui' => true,
-		'show_in_menu' => 'tour',
-		'supports' => array( 'title', 'editor' ),
-	) );
+	register_post_type(
+		'tour',
+		array(
+			'label'        => 'Tours',
+			'public'       => false,
+			'show_ui'      => true,
+			'show_in_menu' => 'tour',
+			'supports'     => array( 'title', 'editor' ),
+		)
+	);
 }
 add_action( 'init', 'tour_register_post_type' );
 
-add_action( 'rest_api_init', function() {
-	register_rest_route( 'tour/v1', 'create', array(
-		'methods' => 'POST',
-		'callback' => function( WP_REST_Request $request ) {
-			$tour_content = $request->get_param('tour');
-			$steps = json_decode( $tour_content, true );
-			$tour_title = $steps[0]['title'];
-			// check if the tour already exists
-			$tour = get_page_by_title( $tour_title, OBJECT, 'tour' );
-			if ( $tour ) {
-				// update the tour
-				$tour_id = $tour->ID;
-				wp_update_post( array(
-					'ID' => $tour_id,
-					'post_content' => $tour_content,
-				) );
-			} else {
-				// create the tour
-				$tour_id = wp_insert_post( array(
-					'post_title' => $tour_title,
-					'post_content' => $tour_content,
-					'post_type' => 'tour',
-					'post_status' => 'publish',
-				) );
-			}
+add_action(
+	'rest_api_init',
+	function() {
+		register_rest_route(
+			'tour/v1',
+			'create',
+			array(
+				'methods'  => 'POST',
+				'callback' => function( WP_REST_Request $request ) {
+					$tour_content = $request->get_param( 'tour' );
+					$steps = json_decode( $tour_content, true );
+					$tour_title = $steps[0]['title'];
+					// check if the tour already exists
+					$tour = get_page_by_title( $tour_title, OBJECT, 'tour' );
+					if ( $tour ) {
+						// update the tour
+						$tour_id = $tour->ID;
+						wp_update_post(
+							array(
+								'ID'           => $tour_id,
+								'post_content' => $tour_content,
+								'post_status'  => 'publish',
+							)
+						);
+					} else {
+						// create the tour
+						$tour_id = wp_insert_post(
+							array(
+								'post_title'   => $tour_title,
+								'post_content' => $tour_content,
+								'post_type'    => 'tour',
+								'post_status'  => 'publish',
+							)
+						);
+					}
 
-			return $tour_id;
-		},
-	) );
-} );
+					return $tour_id;
+				},
+			)
+		);
+	}
+);
 
+add_action(
+	'save_post_tour',
+	function ( $post_id ) {
+		if ( ! isset( $_POST['tour-step-title'] ) ) {
+			return;
+		}
 
-add_filter( 'wp_tour', function( $tour ) {
-	$tours = get_posts( array(
-		'post_type' => 'tour',
-		'posts_per_page' => -1,
-	) );
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
 
-	foreach ( $tours as $_tour ) {
-		$tour_steps = json_decode( $_tour->post_content, true );
-		$tour_name = $tour_steps[0]['title'];
-		$tour[$tour_name] = $tour_steps;
+		// Check if this is a revision
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		// Check if current user has permission to edit the post
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		$tour = array(
+			array(
+				'title' => sanitize_text_field( $_POST['tour-step-title'] ),
+				'color' => sanitize_text_field( $_POST['tour-step-color'] ),
+			),
+		);
+		foreach ( $_POST['tour-step-html'] as $k => $html ) {
+			$tour[] = array(
+				'html'     => sanitize_text_field( $html ),
+				'selector' => sanitize_text_field( $_POST['tour-step-css'][ $k ] ),
+			);
+		}
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => wp_json_encode( $tour ),
+			)
+		);
+	}
+);
+
+function tour_edit_form_top( $post ) {
+	if ( 'tour' !== get_post_type( $post ) ) {
+		return;
 	}
 
-	return $tour;
-} );
+	if ( ! isset( $_GET['action'] ) || 'edit' !== $_GET['action'] ) {
+		return;
+	}
+
+	if ( ! empty( $_POST ) ) {
+		if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'tour-update' . $post->ID ) ) {
+
+			$tour = array(
+				array(
+					'title' => sanitize_text_field( $_POST['tour-step-title'] ),
+					'color' => sanitize_text_field( $_POST['tour-step-color'] ),
+				),
+			);
+			foreach ( $_POST['tour-step-html'] as $k => $html ) {
+				$tour[] = array(
+					'html'     => sanitize_text_field( $html ),
+					'selector' => sanitize_text_field( $_POST['tour-step-css'][ $k ] ),
+				);
+			}
+
+			wp_update_post(
+				array(
+					'ID'           => $post->ID,
+					'post_content' => wp_json_encode( $tour ),
+				)
+			);
+
+			$post = get_post( $post->ID );
+
+		}
+	}
+
+	$tour_steps = json_decode( $post->post_content, true );
+	$settings   = array_shift( $tour_steps );
+	?>
+	<form action="" method="post">
+		<?php wp_nonce_field( 'update-post_' . $post->ID ); ?>
+
+		<table>
+			<tr>
+				<td>Title</td>
+				<td>
+					<input type="text" name="tour-step-title" value="<?php echo esc_attr( $settings['title'] ); ?>" class="regular-text" />
+				</td>
+			</tr>
+			<tr>
+				<td>Color</td>
+				<td>
+					<input type="color" name="tour-step-color" value="<?php echo esc_attr( $settings['color'] ); ?>" class="regular-text" />
+				</td>
+			</tr>
+
+		</table>
+
+		<h2>Tour steps</h2>
+		<?php foreach ( $tour_steps as $k => $step ) : ?>
+			<h3><?php echo esc_html( sprintf( __( 'Step %s', 'tour' ), $k + 1 ) ); ?></h3>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th scope="row"><label for="tour-step-html-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'HTML', 'tour' ); ?></label></th>
+						<td>
+						<textarea name="tour-step-html[]" id="tour-step-html-<?php echo esc_attr( $k ); ?>" class="regular-text"><?php echo esc_html( $step['html'] ); ?></textarea>
+					</td>
+				</tr>
+					<tr>
+						<th scope="row"><label for="tour-step-css-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'CSS Selector', 'tour' ); ?></label></th>
+						<td>
+						<textarea name="tour-step-css[]" id="tour-step-css-<?php echo esc_attr( $k ); ?>" class="regular-text"><?php echo esc_html( $step['selector'] ); ?></textarea>
+					</td>
+				</tr>
+			</table>
+		<?php endforeach; ?>
+		<?php submit_button( 'Update' ); ?>
+	<?php
+	exit;
+}
+add_action( 'edit_form_top', 'tour_edit_form_top' );
+
+
+add_filter(
+	'wp_tour',
+	function( $tour ) {
+		$tours = get_posts(
+			array(
+				'post_type'      => 'tour',
+				'posts_per_page' => -1,
+			)
+		);
+
+		foreach ( $tours as $_tour ) {
+			$tour_steps         = json_decode( $_tour->post_content, true );
+			$tour_name          = $tour_steps[0]['title'];
+			$tour[ $tour_name ] = $tour_steps;
+		}
+
+		return $tour;
+	}
+);
 function tour_add_admin_menu() {
 	add_menu_page( 'Tour', 'Tour', 'manage_options', 'tour', 'tour_admin_create_tour', 'dashicons-admin-site-alt3', 6 );
 	add_submenu_page( 'tour', 'Create a new tour', 'Create a new tour', 'manage_options', 'tour', 'tour_admin_create_tour' );
-	add_submenu_page( 'tour', 'View all tours', 'View all tours', 'manage_options', 'tour-view', 'tour_admin_view_tours' );
 	add_submenu_page( 'tour', 'Settings', 'Settings', 'manage_options', 'tour-settings', 'tour_admin_settings' );
 }
 
@@ -134,25 +283,29 @@ function tour_admin_create_tour() {
 
 	</script>
 
-<?php
+	<?php
 }
 
 function tour_admin_view_tours() {
-	$tours = get_posts( array(
-		'post_type' => 'tour',
-		'posts_per_page' => -1,
-	) );
+	$tours = get_posts(
+		array(
+			'post_type'      => 'tour',
+			'posts_per_page' => -1,
+		)
+	);
 
-	?><ul><?php
+	?>
+	<ul>
+	<?php
 	foreach ( $tours as $_tour ) {
 		$tour_steps = json_decode( $_tour->post_content, true );
-		$tour_name = $tour_steps[0]['title'];
+		$tour_name  = $tour_steps[0]['title'];
 		$tour_color = $tour_steps[0]['color'];
 		?>
 		<li>
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=tour&tour=' . $_tour->ID ) ); ?>"><?php echo esc_html( $tour_name ); ?></a>
 			<span style="background-color: <?php echo esc_attr( $tour_color ); ?>; width: 20px; height: 20px; display: inline-block;"></span>
-			<?php echo count( $tour_steps ); ?> steps
+		<?php echo count( $tour_steps ); ?> steps
 			(<?php echo esc_html( $_tour->post_date ); ?>)
 
 		</li>
@@ -162,7 +315,7 @@ function tour_admin_view_tours() {
 function tour_admin_settings() {}
 
 function output_tour_button() {
-?>
+	?>
 	<style>
 		#tour-launcher {
 			position: fixed;
@@ -189,6 +342,7 @@ function output_tour_button() {
 					title: tour_name,
 					color: tour_color,
 				}];
+				console.log( tourSteps );
 			}
 		}
 		enable_tour_if_cookie_is_set();
@@ -309,7 +463,7 @@ function output_tour_button() {
 		document.addEventListener('mouseout', clearHighlight);
 		document.addEventListener('click', tourStepSelector);
 	</script>
-<?php
+	<?php
 }
 
 add_action( 'wp_footer', 'output_tour_button' );
