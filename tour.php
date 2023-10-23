@@ -114,64 +114,77 @@ function output_tour_button() {
 			if ( tour_name ) {
 				document.querySelector('#tour-launcher').style.display = 'block';
 				document.querySelector('#tour-title').textContent = tour_name;
+				tourSelectorActive = ! tourSelectorActive;
 			}
 		}
 		enable_tour_if_cookie_is_set();
+		var tourSelectorActive = false;
+		var tourStep = false;
 
 		document.addEventListener('mouseover', function(event) {
-		  var target = event.target;
+			var target = event.target;
+			if ( target.closest('#tour-launcher') ) {
+				tourSelectorActive = ! tourSelectorActive;
+				return;
+			}
+			if ( tourSelectorActive ) {
+				clearHighlight(target);
+				return;
+			}
+			// Highlight the element on hover
+			target.style.outline = '2px solid red';
+			target.style.cursor = 'pointer';
+			// Clear the previous highlighting when moving to a new element
+			function clearHighlight() {
+				target.style.outline = '';
+				target.style.cursor = '';
 
-		  // Highlight the element on hover
-		  target.style.outline = '2px solid red';
+			}
+			// Generate CSS selectors for the clicked element
+			function getSelectors(elem) {
+				var selectors = [];
 
-		  // Clear the previous highlighting when moving to a new element
-		  function clearHighlight() {
-		    target.style.outline = '';
-		  }
+				// Find ID selector
+				if ( ! selectors && elem.id ) {
+					selectors.push('#' + elem.id);
+				}
 
-		  // Generate CSS selectors for the clicked element
-		  function getSelectors(elem) {
-		    var selectors = [];
+				// Find CSS class selector
+				if ( ! selectors && elem.className) {
+					selectors.push('.' + elem.className.trim().replace(/(\s+)/g, '.'));
+				}
 
-		    // Find CSS class selector
-		    if (elem.className) {
-		      selectors.push('.' + elem.className.trim().replace(/(\s+)/g, '.'));
-		    }
+				// Find DOM nesting selectors
+				while ( elem.parentElement ) {
+					var currentElement = elem.parentElement;
+					var tagName = elem.tagName.toLowerCase();
+					var index = Array.prototype.indexOf.call(currentElement.children, elem) + 1;
 
-		    // Find ID selector
-		    if (elem.id) {
-		      selectors.push('#' + elem.id);
-		    }
+					selectors.push(tagName + ':nth-child(' + index + ')');
 
-		    // Find DOM nesting selectors
-		    while(elem.parentElement) {
-		      var currentElement = elem.parentElement;
-		      var tagName = elem.tagName.toLowerCase();
-		      var index = Array.prototype.indexOf.call(currentElement.children, elem) + 1;
+					elem = currentElement;
+				}
 
-		      selectors.push(tagName + ':nth-child(' + index + ')');
+				return selectors.reverse();
+			}
+			// Show CSS selectors on click
+			target.addEventListener('click', function(event) {
+				if ( ! tourSelectorActive ) {
+					return;
+				}
 
-		      elem = currentElement;
-		    }
+				event.stopPropagation();
 
-		    return selectors.reverse();
-		  }
+				var selectors = getSelectors(this);
 
-		  // Show CSS selectors on click
-		  target.addEventListener('click', function(event) {
-		    event.stopPropagation();
+				// Display the selectors in an alert box
+				console.log(selectors);
 
-		    var selectors = getSelectors(this);
-
-		    // Display the selectors in an alert box
-		    alert('CSS Selectors:\n' + selectors.join('\n'));
-
-		    // Remove the highlighting
-		    clearHighlight();
-		  });
-
-		  // Clear the highlighting when mouseout
-		  target.addEventListener('mouseout', clearHighlight);
+				// Remove the highlighting
+				clearHighlight();
+			});
+			// Clear the highlighting when mouseout
+			target.addEventListener('mouseout', clearHighlight);
 		}, false);
 	</script>
 <?php
