@@ -3,7 +3,12 @@
 
 jQuery( document ).ready(
 	function() {
-		jQuery( document ).on( 'click', '.pulse', function() {
+		jQuery( document ).on( 'click', '.pulse', function( event) {
+			// Only fires the tour if the user clicks on the left side of the bubble element
+			if ( event.clientX > jQuery(this).offset().left + 15 ) {
+				return;
+			}
+			event.preventDefault();
 			var driver = window.driver.js.driver;
 			var wrapper = jQuery( this ).closest( '.pulse-wrapper' );
 			var tourName = wrapper.data( 'tourname' );
@@ -28,13 +33,12 @@ jQuery( document ).ready(
 		} );
 
 		function addPulse( field, item, tourName, index ) {
+			let pulseClass = "pulse tour-" + tourName;
+			jQuery( field ).addClass( pulseClass );
 			var div = jQuery( '<div class="pulse-wrapper">' );
-			var pulse = jQuery( '<div class="pulse tour-' + tourName + '">' );
-			var cssString = '';
 			div.data( 'tourname', tourName ).data( 'tourindex', index ).data( 'popover-content', item.html );
 			if ( ! field.closest('.pulse-wrapper').length ) {
 				field.wrap( div );
-				field.parent().append( pulse );
 			}
 			if ( typeof item.css !== 'undefined' ) {
 				cssString = cssObjectToString( item.css );
@@ -50,7 +54,6 @@ jQuery( document ).ready(
 		}
 
 		window.tour = wp_tour;
-		console.log( window.tour );
 		window.loadTour = function() {
 			var color1 = '';
 			var color2 = '';
@@ -76,14 +79,8 @@ jQuery( document ).ready(
 					'box-shadow: 0 0 0 0 ' + color1 + '00' + ';' +
 					'}' +
 					'}',
-				style.cssRules.length );
+					style.cssRules.length );
 
-				style.insertRule( '.tour-' + n + '{' +
-					'box-shadow: 0 0 0 ' + color2 + ';' +
-					'background: ' + color1 + '80' + ';' +
-					'-webkit-animation: animation-' + n + ' 2s infinite;' +
-					'animation: animation-' + n + ' 2s infinite; }',
-				style.cssRules.length );
 				addPulse( jQuery( window.tour[ n ][ 1 ].selector ), window.tour[ n ][ 1 ], n, 1 );
 			}
 		};
