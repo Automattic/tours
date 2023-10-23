@@ -57,7 +57,7 @@ function tour_add_admin_menu() {
 add_action( 'admin_menu', 'tour_add_admin_menu' );
 function tour_admin_create_tour() {
 	?>
-<div id="wrap"><form>
+<div id="wrap"><form id="create-tour">
 	<h1><?php esc_html_e( 'Create a new tour', 'tour' ); ?></h1>
 	<table class="form-table">
 		<tbody>
@@ -71,11 +71,11 @@ function tour_admin_create_tour() {
 		</tbody>
 	</table>
 
-	<button id="create-tour">Start creating the tour</button>
+	<button>Start creating the tour</button>
 
 </form></div>
 	<script>
-		document.querySelector('#create-tour').addEventListener('click', function(e) {
+		document.querySelector('#create-tour').addEventListener('submit', function(e) {
 			e.preventDefault();
 			var tourTitle = document.querySelector('#tour_title').value;
 			if ( ! tourTitle ) {
