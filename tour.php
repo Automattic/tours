@@ -15,3 +15,18 @@ function tour_enqueue_scripts() {
 
 add_action( 'wp_enqueue_scripts', 'tour_enqueue_scripts' );
 
+add_action( 'wp_footer', function() {
+?>
+	<style>
+		#tour-launcher {
+			position: fixed;
+			bottom: 76px;
+			right: 24px;
+		}
+	</style>
+	<div id="tour-launcher" style="display: block;">
+		<span class="dashicons dashicons-admin-site-alt3">
+		</span>
+	</div>
+<?php
+});
