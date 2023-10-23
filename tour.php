@@ -130,17 +130,35 @@ function output_tour_button() {
 		}
 		enable_tour_if_cookie_is_set();
 
+		function toggleTourSelector( event ) {
+			event.stopPropagation();
+			tourSelectorActive = ! tourSelectorActive;
+			console.log( tourSelectorActive? 'disabled' : 'enabled' );
+
+			document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
+
+			if ( ! tourSelectorActive && tourSteps.length > 1 ) {
+				if (confirm('Finished?')) {
+				console.log( tourSteps );
+				}
+				return false;
+			}
+
+			return false;
+		}
+		document.querySelector('#tour-launcher').addEventListener('click', toggleTourSelector);
+
 		document.addEventListener('mouseover', function(event) {
 			var target = event.target;
 			if ( ! tourSelectorActive || target.closest('#tour-launcher') ) {
-				clearHighlight(target);
+				clearHighlight( target );
 				return;
 			}
 			// Highlight the element on hover
 			target.style.outline = '2px solid red';
 			target.style.cursor = 'pointer';
 			// Clear the previous highlighting when moving to a new element
-			function clearHighlight() {
+			function clearHighlight( target ) {
 				target.style.outline = '';
 				target.style.cursor = '';
 
@@ -174,13 +192,6 @@ function output_tour_button() {
 			}
 			// Show CSS selectors on click
 			target.addEventListener('click', function(event) {
-				if ( event.target.closest('#tour-launcher') ) {
-					event.stopPropagation();
-					tourSelectorActive = ! tourSelectorActive;
-					document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
-					return;
-				}
-
 				if ( ! tourSelectorActive ) {
 					return;
 				}
@@ -202,12 +213,17 @@ function output_tour_button() {
 				}
 
 				// Remove the highlighting
-				clearHighlight();
+				clearHighlight( target );
 
 				return false;
 			});
 			// Clear the highlighting when mouseout
-			target.addEventListener('mouseout', clearHighlight);
+			target.addEventListener('mouseout', function( event ) {
+				clearHighlight( event.target );
+				target.removeEventListener('click', arguments.callee);
+
+			});
+
 		}, false);
 	</script>
 <?php
