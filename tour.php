@@ -114,7 +114,7 @@ function output_tour_button() {
 	</div>
 	<script>
 		var tourSelectorActive = false;
-		var tourStep = false;
+		var tourSteps = [];
 		function enable_tour_if_cookie_is_set() {
 			var tour_name = document.cookie.indexOf('tour=') > -1 ? document.cookie.split('tour=')[1].split(';')[0] : '';
 			if ( tour_name ) {
@@ -122,6 +122,7 @@ function output_tour_button() {
 				document.querySelector('#tour-title').textContent = tour_name;
 				tourSelectorActive = ! tourSelectorActive;
 				document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
+				tourSteps.push({title: tour_name});
 			}
 		}
 		enable_tour_if_cookie_is_set();
@@ -171,6 +172,7 @@ function output_tour_button() {
 			// Show CSS selectors on click
 			target.addEventListener('click', function(event) {
 				if ( event.target.closest('#tour-launcher') ) {
+					event.stopPropagation();
 					tourSelectorActive = ! tourSelectorActive;
 					document.querySelector('#tour-launcher').className = tourSelectorActive ? 'active' : '';
 					return;
@@ -180,15 +182,24 @@ function output_tour_button() {
 					return;
 				}
 
+				event.stopPropagation();
 				event.preventDefault();
 
 				var selectors = getSelectors(this);
 
-				// Display the selectors in an alert box
-				console.log(selectors);
+				// step name
+				var stepName = prompt( 'Enter step name' );
+				tourSteps.push({
+					selector: selectors.join(' '),
+					title: stepName,
+				});
+
+				console.log(tourSteps);
 
 				// Remove the highlighting
 				clearHighlight();
+
+				return false;
 			});
 			// Clear the highlighting when mouseout
 			target.addEventListener('mouseout', clearHighlight);
