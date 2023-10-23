@@ -48,6 +48,7 @@ jQuery( document ).ready(
 		}
 
 		window.tour = gp_tour;
+		console.log( window.tour );
 		window.loadTour = function() {
 			var color1 = '';
 			var color2 = '';

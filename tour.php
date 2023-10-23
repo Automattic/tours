@@ -12,10 +12,14 @@
 
 function tour_enqueue_scripts() {
 	wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
+	wp_register_style( 'tour-css', plugins_url( 'assets/css/style.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/style.css' ) );
+	wp_enqueue_style( 'driver-js');
+	wp_enqueue_style(   'tour-css' );
 	wp_enqueue_script( 'driver-js', plugins_url( 'assets/js/driver-js.js', __FILE__ ), array(), filemtime( __DIR__ . '/assets/js/driver-js.js' ), array( 'in_footer' => true ) );
 	wp_register_script( 'gp-tour', plugins_url( 'assets/js/tour.js', __FILE__ ), array( 'jquery', 'driver-js' ), filemtime( __DIR__ . '/assets/js/tour.js' ), false );
-	wp_set_script_translations( 'gp-tour', 'tour' );
-	wp_localize_script( 'gp-tour', 'gp_tour', apply_filters( 'gp_tour', array() ) );}
+	wp_enqueue_script( 'gp-tour');
+	wp_localize_script( 'gp-tour', 'gp_tour', apply_filters( 'gp_tour', array() ) );
+}
 
 add_action( 'wp_enqueue_scripts', 'tour_enqueue_scripts' );
 
@@ -23,30 +27,29 @@ add_filter( 'gp_tour', function( ) {
 	return array(
 		'ui-intro' => [
 			[
-				'title' => 'UI Introduction Tour',
+				'title' => 'WordPress Introduction Tour',
 				'color' => '#3939c7',
 			],
 			[
-				'selector' => '.strings .original',
-				'html' => 'This is the original string that needs translation'
+				'selector' => '.wp-block-post-title',
+				'html' => 'This is the post title.'
 			],
 			[
-				'selector' => 'textarea.foreign-text',
-				'html' => 'Enter translation here',
+				'selector' => '.wp-block-post-excerpt__excerpt',
+				'html' => 'This is the post excerpt.'
 			],
 			[
-				'selector' => '.sidebar-tabs',
-				'html' => 'See meta tabs here',
+				'selector' => '.wp-block-post-date',
+				'html' => 'And this is the post date, when we published this post.'
 			],
 			[
-				'selector' => '.button.ok',
-				'html' => 'Click here to save translation',
+				'selector' => '.wp-block-column.is-layout-flow.wp-block-column-is-layout-flow',
+				'html' => 'Do you want to contact us? Click here.',
 			]
 		],
 
 	);
 } );
-
 function tour_add_admin_menu() {
 	add_menu_page( 'Tour', 'Tour', 'manage_options', 'tour', 'tour_admin_create_tour', 'dashicons-admin-site-alt3', 6 );
 	add_submenu_page( 'tour', 'Create a new tour', 'Create a new tour', 'manage_options', 'tour', 'tour_admin_create_tour' );
