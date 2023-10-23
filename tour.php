@@ -142,10 +142,9 @@ function output_tour_button() {
 
 			if ( ! tourSelectorActive && tourSteps.length > 1 ) {
 				if (confirm('Finished?')) {
-				window.tour[document.cookie.split('tour=')[1].split(';')[0]] = tourSteps;
-				console.log( window.tour );
-				window.loadTour();
-				document.querySelector('#tour-launcher').style = "display: none";
+					window.tour[document.cookie.split('tour=')[1].split(';')[0]] = tourSteps;
+					console.log( window.tour );
+					window.loadTour();
 				}
 				return false;
 			}
@@ -153,23 +152,29 @@ function output_tour_button() {
 			return false;
 		}
 		document.querySelector('#tour-launcher').addEventListener('click', toggleTourSelector);
+		var clearHighlight = function( event ) {
+			event.target.style.outline = '';
+			event.target.style.cursor = '';
 
-		document.addEventListener('mouseover', function(event) {
+		}
+
+		var tourStepHighlighter = function(event) {
 			var target = event.target;
 			if ( ! tourSelectorActive || target.closest('#tour-launcher') ) {
-				clearHighlight( target );
+				clearHighlight( event );
 				return;
 			}
 			// Highlight the element on hover
 			target.style.outline = '2px solid red';
 			target.style.cursor = 'pointer';
-			// Clear the previous highlighting when moving to a new element
-			function clearHighlight( target ) {
-				target.style.outline = '';
-				target.style.cursor = '';
+		};
 
+
+		var tourStepSelector = function(event) {
+			if ( ! tourSelectorActive ) {
+				return;
 			}
-			// Generate CSS selectors for the clicked element
+
 			function getSelectors(elem) {
 				var selectors = [];
 
@@ -196,41 +201,32 @@ function output_tour_button() {
 
 				return selectors.reverse();
 			}
-			// Show CSS selectors on click
-			target.addEventListener('click', function(event) {
-				if ( ! tourSelectorActive ) {
-					return;
-				}
 
-				event.stopPropagation();
-				event.preventDefault();
 
-				var selectors = getSelectors(this);
+			event.preventDefault();
 
-				// step name
-				var stepName = prompt( 'Enter step name' );
-				if ( stepName ) {
-					tourSteps.push({
-						selector: selectors.join(' '),
-						html: stepName,
-					});
+			var selectors = getSelectors(event.target);
 
-					console.log(tourSteps);
-				}
+			// step name
+			var stepName = prompt( 'Enter html for step' + tourSteps.length );
+			if ( stepName ) {
+				tourSteps.push({
+					selector: selectors.join(' '),
+					html: stepName,
+				});
 
-				// Remove the highlighting
-				clearHighlight( target );
+				console.log(tourSteps);
+			}
 
-				return false;
-			});
-			// Clear the highlighting when mouseout
-			target.addEventListener('mouseout', function( event ) {
-				clearHighlight( event.target );
-				target.removeEventListener('click', arguments.callee);
+			// Remove the highlighting
+			clearHighlight( event );
 
-			});
+			return false;
+		};
 
-		}, false);
+		document.addEventListener('mouseover', tourStepHighlighter, false);
+		document.addEventListener('mouseout', clearHighlight, false);
+		document.addEventListener('click', tourStepSelector, false);
 	</script>
 <?php
 }
