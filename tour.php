@@ -146,7 +146,7 @@ function my_custom_row_actions( $actions, $post ) {
         return $actions;
     }
 
-	$tour_steps = json_decode( $post->post_content, true );
+	$tour_steps = json_decode( wp_unslash( $post->post_content ), true );
 
     $caption = __( 'Add more steps', 'tour' );
 
@@ -466,7 +466,7 @@ function tour_admin_view_tours() {
 	<ul>
 	<?php
 	foreach ( $tours as $_tour ) {
-		$tour_steps = json_decode( $_tour->post_content, true );
+		$tour_steps = json_decode( wp_unslash( $_tour->post_content ), true );
 		$tour_name  = $tour_steps[0]['title'];
 		$tour_color = $tour_steps[0]['color'];
 		?>
