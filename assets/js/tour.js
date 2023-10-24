@@ -9,16 +9,17 @@ document.addEventListener('DOMContentLoaded', function() {
 		event.preventDefault();
 		const driver = window.driver.js.driver;
 		const tourName = event.target.dataset.tourName;
-		var startStep = 1;
+		const n = event.target.dataset.n;
+		var startStep = 0;
 		if ( typeof wp_tour_settings.progress[tourName] !== 'undefined' ) {
-			startStep = wp_tour_settings.progress[tourName] + 2;
+			startStep = wp_tour_settings.progress[tourName] + 1;
 		}
 
-		var tourSteps = window.tour[ tourName ].slice(startStep);
+		var tourSteps = window.tour[ tourName ].slice(1);
 		if ( ! tourSteps.length ) {
 			return;
 		}
-		tourSteps[0].element = event.target.closest('.pulse-wrapper');
+		tourSteps[startStep].element = event.target.closest('.pulse-wrapper');
 		var driverObj = driver( {
 			showProgress: true,
 			steps: tourSteps,
@@ -29,22 +30,31 @@ document.addEventListener('DOMContentLoaded', function() {
 				xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
 				xhr.send(JSON.stringify({
 					tour: tourName,
-					step: options.state.activeIndex
+					step: options.state.activeIndex - 1
 				}));
+			},
+			onDestroyStarted: function( element, step, options ) {
+				console.log( options.state.activeIndex );
+				addPulse( tourName, n, options.state.activeIndex + 1 );
+				driverObj.destroy();
 			}
 		} );
-		driverObj.drive();
-		const pulse = tourSteps[0].element.querySelector('.pulse');
-		// pulse.parentNode.removeChild( pulse );
-		pulse.style.display = 'none';
+		driverObj.drive( startStep );
+		const pulse = tourSteps[startStep].element.querySelector('.pulse');
+		pulse.parentNode.removeChild( pulse );
 	} );
 
 	function addPulse(tourName,n, startStep) {
+		let fields;
 		if ( window.tour[tourName].length <= startStep ) {
 			return;
 		}
 		const selector = window.tour[tourName][startStep].element;
-		const fields = document.querySelectorAll(selector);
+		if ( typeof selector === 'string' ) {
+			fields = document.querySelectorAll(selector);
+		} else {
+			fields = [ selector ];
+		}
 		for (let i = 0; i < fields.length; i++) {
 			let field = fields[i];
 			let wrapper = field.closest('.pulse-wrapper');
@@ -63,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				pulse.classList.add("pulse");
 				pulse.classList.add("tour-" + n);
 				pulse.dataset.tourName = tourName;
+				pulse.dataset.n = n;
 				if ( field.hasChildNodes() ) {
 					wrapper.insertBefore(pulse,wrapper.firstChild);
 				} else {

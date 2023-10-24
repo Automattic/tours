@@ -66,13 +66,21 @@ add_action(
 				'callback' => function( WP_REST_Request $request ) {
 					$step = $request->get_param( 'step' );
 					$tour_title = $request->get_param( 'tour' );
-					$tour = get_user_option( 'tour-progress', get_current_user_id() );
+					$tour = get_page_by_title( $tour_title, OBJECT, 'tour' );
 					if ( ! $tour ) {
-						$tour = array();
+						return false;
 					}
 
-					$tour[ $tour_title ] = $step;
-					update_user_option( get_current_user_id(), 'tour-progress', $tour );
+					$tour_progress = get_user_option( 'tour-progress', get_current_user_id() );
+					if ( ! $tour_progress ) {
+						$tour_progress = array();
+					}
+					if ( $step < 0 || ! is_numeric( $step ) ) {
+						unset( $tour_progress[ $tour_title ] );
+					} else {
+						$tour_progress[ $tour_title ] = $step;
+					}
+					update_user_option( get_current_user_id(), 'tour-progress', $tour_progress );
 					return array(
 						'success' => true,
 					);
@@ -248,243 +256,151 @@ function tour_edit_form_top( $post ) {
 
 	?>
 	<details><summary>JSON</summary>
-		<pre><?php echo esc_html( json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></pre></details>
-		<div id="poststuff">
-			<div id="post-body" class="metabox-holder columns-2">
-				<div id="postbox-container-1" class="postbox-container">
+		<pre><?php echo esc_html( json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></pre>
+	</details>
+	<div id="poststuff">
+		<div id="post-body" class="metabox-holder columns-2">
+			<div id="postbox-container-1" class="postbox-container">
+				<?php
+				do_action( 'submitpost_box', $post );
+				do_meta_boxes( 'tour', 'side', $post );
+				?>
+			</div>
+			<div id="postbox-container-2" class="postbox-container">
+				<table>
+					<tr>
+						<td>Title</td>
+						<td>
+							<input type="text" name="tour[0][title]" id="tour_title" value="<?php echo esc_attr( $tour[0]['title'] ); ?>" class="regular-text" required />
+						</td>
+						<td>Color</td>
+						<td>
+							<input type="color" name="tour[0][color]"  id="tour_color" value="<?php echo esc_attr( $tour[0]['color'] ); ?>" />
+						</td>
+						<td><button id="add-more-steps">Add more steps</button></td>
+					</tr>
+
+				</table>
+				<div id="steps">
 					<?php
-					do_action( 'submitpost_box', $post );
-					do_meta_boxes( 'tour', 'side', $post );
-					?>
-				</div>
-				<div id="postbox-container-2" class="postbox-container">
-					<table>
-						<tr>
-							<td>Title</td>
-							<td>
-								<input type="text" name="tour[0][title]" id="tour_title" value="<?php echo esc_attr( $tour[0]['title'] ); ?>" class="regular-text" required />
-							</td>
-							<td>Color</td>
-							<td>
-								<input type="color" name="tour[0][color]"  id="tour_color" value="<?php echo esc_attr( $tour[0]['color'] ); ?>" />
-							</td>
-							<td><button id="add-more-steps">Add more steps</button></td>
-						</tr>
-
-					</table>
-					<div id="steps">
-						<?php
-						foreach ( $tour as $k => $step ) {
-							if ( 0 === $k ) {
-								continue;
-							}
-							?>
-							<div class="step" style="border: 1px solid #ccc; border-radius: 4px; padding: .5em; margin-top: 2em">
-								<input type="hidden" name="order[]" value="<?php echo esc_attr( $k ); ?>"/>
-								<table class="form-table">
-									<tbody>
-										<tr>
-											<th scope="row"><label for="tour-title-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Title', 'tour' ); ?></label><br>
-											</th>
-											<td>
-												<input name="tour[<?php echo esc_attr( $k ); ?>][popover][title]" rows="7" id="tour-step-title-<?php echo esc_attr( $k ); ?>" class="regular-text" value="<?php echo esc_attr( $step['popover']['title'] ); ?>"/>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"><label for="tour-step-description-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Description', 'tour' ); ?></label></th>
-											<td>
-												<textarea name="tour[<?php echo esc_attr( $k ); ?>][popover][description]" rows="7" id="tour-step-description-<?php echo esc_attr( $k ); ?>" class="large-text"><?php echo esc_html( $step['popover']['description'] ); ?></textarea>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"><label for="tour-step-element-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'CSS Selector', 'tour' ); ?></label></th>
-											<td>
-												<textarea name="tour[<?php echo esc_attr( $k ); ?>][element]" rows="7" id="tour-step-element-<?php echo esc_attr( $k ); ?>" class="large-text code tour-step-css"><?php echo esc_html( $step['element'] ); ?></textarea>
-											</td>
-										</tr>
-									</tbody>
-								</table>
-								<a href="#" class="delete-tour-step" data-delete-text="<?php esc_attr_e( 'Delete', 'tour' ); ?>" data-undo-text="<?php esc_attr_e( 'Undo Delete', 'tour' ); ?>"><?php esc_html_e( 'Delete', 'tour' ); ?></a>
-								<a href="#" class="tour-move-up"><?php esc_html_e( 'Move Up', 'tour' ); ?></a>
-								<a href="#" class="tour-move-down"><?php esc_html_e( 'Move Down', 'tour' ); ?></a>
-
-							</div>
-							<?php
-
+					foreach ( $tour as $k => $step ) {
+						if ( 0 === $k ) {
+							continue;
 						}
 						?>
-					</div>
-				</form>
-			</div>
-		</div>
-		<script>
-			document.querySelector('#post').addEventListener('submit', function ( event ) {
-				setTourCookie( document.querySelector('#tour_title').value, document.querySelector('#tour_color').value );
-			} );
+						<div class="step" style="border: 1px solid #ccc; border-radius: 4px; padding: .5em; margin-top: 2em">
+							<input type="hidden" name="order[]" value="<?php echo esc_attr( $k ); ?>"/>
+							<table class="form-table">
+								<tbody>
+									<tr>
+										<th scope="row"><label for="tour-title-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Title', 'tour' ); ?></label><br>
+										</th>
+										<td>
+											<input name="tour[<?php echo esc_attr( $k ); ?>][popover][title]" rows="7" id="tour-step-title-<?php echo esc_attr( $k ); ?>" class="regular-text" value="<?php echo esc_attr( $step['popover']['title'] ); ?>"/>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row"><label for="tour-step-description-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Description', 'tour' ); ?></label></th>
+										<td>
+											<textarea name="tour[<?php echo esc_attr( $k ); ?>][popover][description]" rows="7" id="tour-step-description-<?php echo esc_attr( $k ); ?>" class="large-text"><?php echo esc_html( $step['popover']['description'] ); ?></textarea>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row"><label for="tour-step-element-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'CSS Selector', 'tour' ); ?></label></th>
+										<td>
+											<textarea name="tour[<?php echo esc_attr( $k ); ?>][element]" rows="7" id="tour-step-element-<?php echo esc_attr( $k ); ?>" class="large-text code tour-step-css"><?php echo esc_html( $step['element'] ); ?></textarea>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+							<a href="#" class="delete-tour-step" data-delete-text="<?php esc_attr_e( 'Delete', 'tour' ); ?>" data-undo-text="<?php esc_attr_e( 'Undo Delete', 'tour' ); ?>"><?php esc_html_e( 'Delete', 'tour' ); ?></a>
+							<a href="#" class="tour-move-up"><?php esc_html_e( 'Move Up', 'tour' ); ?></a>
+							<a href="#" class="tour-move-down"><?php esc_html_e( 'Move Down', 'tour' ); ?></a>
 
-			document.querySelector('#add-more-steps').addEventListener('click', function ( event ) {
-				event.preventDefault();
-				setTourCookie( document.querySelector('#tour_title').value, document.querySelector('#tour_color').value );
-			} );
+						</div>
+						<?php
 
-			var updateArrows = function() {
-				document.querySelectorAll('.step').forEach( function( element ) {
-					element.querySelector('.tour-move-up').style.display = element.previousElementSibling ? 'inline' : 'none';
-					element.querySelector('.tour-move-down').style.display = element.nextElementSibling ? 'inline' : 'none';
-				});
-			}
-
-			document.addEventListener('click', function( event ) {
-				if ( ! event.target.matches('.tour-move-up') ) {
-					return;
-				}
-				event.preventDefault();
-				var element = event.target.closest('div');
-				var parent = element.parentNode;
-				var prev = element.previousElementSibling;
-				if ( prev ) {
-					parent.insertBefore( element, prev );
-				}
-				updateArrows();
-			});
-
-			document.addEventListener('click', function( event ) {
-				if ( ! event.target.matches('.tour-move-down') ) {
-					return;
-				}
-				event.preventDefault();
-				var element = event.target.closest('div');
-				var parent = element.parentNode;
-				var next = element.nextElementSibling;
-				if ( next ) {
-					parent.insertBefore( next, element );
-				}
-				updateArrows();
-			});
-			updateArrows();
-
-			document.addEventListener('click', function( event ) {
-				if ( ! event.target.matches('.delete-tour-step') ) {
-					return;
-				}
-				event.preventDefault();
-				var t = event.target.closest('div').querySelector('table');
-				var css = t.querySelector('.tour-step-css');
-				if ( t.style.display === 'none' ) {
-					t.style.display = 'table';
-					css.value = css.dataset.oldValue;
-					event.target.textContent = event.target.dataset.deleteText;
-					return;
-				}
-				t.style.display = 'none';
-				css.dataset.oldValue = css.value;
-				css.value = '';
-				event.target.textContent = event.target.dataset.undoText;
-			});
-
-		</script>
-		<?php
-		do_action( 'wp_footer' );
-		exit;
-	}
-	add_action( 'edit_form_top', 'tour_edit_form_top' );
-
-
-	add_filter(
-		'wp_tour',
-		function( $tour ) {
-			$tours = get_posts(
-				array(
-					'post_type'      => 'tour',
-					'posts_per_page' => -1,
-				)
-			);
-
-			foreach ( $tours as $_tour ) {
-				$tour_steps         = json_decode( wp_unslash( $_tour->post_content ), true );
-				$tour_name          = $tour_steps[0]['title'];
-				$tour[ $tour_name ] = $tour_steps;
-			}
-
-			return $tour;
-		}
-	);
-	function tour_add_admin_menu() {
-		add_menu_page( 'Tour', 'Tour', 'manage_options', 'tour', 'tour_admin_create_tour', 'dashicons-admin-site-alt3', 6 );
-		add_submenu_page( 'tour', 'Create a new tour', 'Create a new tour', 'manage_options', 'tour', 'tour_admin_create_tour' );
-		add_submenu_page( 'tour', 'Settings', 'Settings', 'manage_options', 'tour-settings', 'tour_admin_settings' );
-	}
-
-	add_action( 'admin_menu', 'tour_add_admin_menu' );
-	function tour_admin_create_tour() {
-		$tours      = get_posts(
-			array(
-				'post_type'      => 'tour',
-				'posts_per_page' => -1,
-			)
-		);
-		$tour_names = array_map( 'get_the_title', $tours );
-		$tour_names = array_map( 'preg_quote', $tour_names );
-		?>
-		<div class="wrap">
-			<h1 class="wp-heading-inline"><?php esc_html_e( 'Create a new tour', 'tour' ); ?></h1>
-			<form id="create-tour">
-				<table class="form-table">
-					<tbody>
-						<tr>
-							<th scope="row"><label for="tour_title"><?php esc_html_e( 'Title', 'tour' ); ?></label></th>
-							<td>
-								<input type="text" name="tour_title" id="tour_title" value="Test" class="regular-text" required />
-								<p class="description"><?php esc_html_e( 'This cannot be the name of an already existing tour.', 'tour' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="tour_color"><?php esc_html_e( 'Color', 'tour' ); ?></label></th>
-							<td>
-								<input type="color" name="tour_color" id="tour_color" value="#3939c7" required />
-							</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<button>Start creating the tour</button>
-
+					}
+					?>
+				</div>
 			</form>
-			<div id="ready-tour">
-				<h2><?php esc_html_e( 'Ready to start creating the tour?', 'tour' ); ?></h2>
-				<p><?php esc_html_e( 'Navigate to the page where you want to add your tour and click the button in the bottom corner.', 'tour' ); ?></p>
-				<p><?php esc_html_e( 'Click on the elements you want to highlight and add a description for each step.', 'tour' ); ?></p>
-
-				<img src="<?php echo esc_url( plugins_url( 'assets/images/select-tour-step.gif', __FILE__ ) ); ?>" alt="<?php esc_attr_e( 'Tour creation mode', 'tour' ); ?>" />
-				<p><?php esc_html_e( 'When you are done, come back here and click on the button below.', 'tour' ); ?></p>
-
-				<button id="finished-creating-tour">Finished creating the tour</button>
-			</div>
 		</div>
-		<script>
-			document.querySelector('#create-tour').addEventListener('submit', function(e) {
-				e.preventDefault();
-				setTourCookie( document.querySelector('#tour_title').value, document.querySelector('#tour_color').value );
-				this.style.display = 'none';
-				document.querySelector('#ready-tour').style.display = 'block';
+	</div>
+	<script>
+		document.querySelector('#post').addEventListener('submit', function ( event ) {
+			setTourCookie( document.querySelector('#tour_title').value, document.querySelector('#tour_color').value );
+		} );
+
+		document.querySelector('#add-more-steps').addEventListener('click', function ( event ) {
+			event.preventDefault();
+			setTourCookie( document.querySelector('#tour_title').value, document.querySelector('#tour_color').value );
+		} );
+
+		var updateArrows = function() {
+			document.querySelectorAll('.step').forEach( function( element ) {
+				element.querySelector('.tour-move-up').style.display = element.previousElementSibling ? 'inline' : 'none';
+				element.querySelector('.tour-move-down').style.display = element.nextElementSibling ? 'inline' : 'none';
 			});
+		}
 
-			document.querySelector('#finished-creating-tour').addEventListener('click', function(e) {
-				e.preventDefault();
-				deleteTourCookie();
+		document.addEventListener('click', function( event ) {
+			if ( ! event.target.matches('.tour-move-up') ) {
+				return;
+			}
+			event.preventDefault();
+			var element = event.target.closest('div');
+			var parent = element.parentNode;
+			var prev = element.previousElementSibling;
+			if ( prev ) {
+				parent.insertBefore( element, prev );
+			}
+			updateArrows();
+		});
 
-				document.querySelector('#ready-tour').style.display = 'none';
-				document.querySelector('#create-tour').style.display = 'block';
-			});
+		document.addEventListener('click', function( event ) {
+			if ( ! event.target.matches('.tour-move-down') ) {
+				return;
+			}
+			event.preventDefault();
+			var element = event.target.closest('div');
+			var parent = element.parentNode;
+			var next = element.nextElementSibling;
+			if ( next ) {
+				parent.insertBefore( next, element );
+			}
+			updateArrows();
+		});
+		updateArrows();
 
-			document.querySelector('#create-tour').style.display = document.cookie.indexOf('tour=') > -1 ? 'none' : 'block';
-			document.querySelector('#ready-tour').style.display = document.cookie.indexOf('tour=') === -1 ? 'none' : 'block';
-		</script>
+		document.addEventListener('click', function( event ) {
+			if ( ! event.target.matches('.delete-tour-step') ) {
+				return;
+			}
+			event.preventDefault();
+			var t = event.target.closest('div').querySelector('table');
+			var css = t.querySelector('.tour-step-css');
+			if ( t.style.display === 'none' ) {
+				t.style.display = 'table';
+				css.value = css.dataset.oldValue;
+				event.target.textContent = event.target.dataset.deleteText;
+				return;
+			}
+			t.style.display = 'none';
+			css.dataset.oldValue = css.value;
+			css.value = '';
+			event.target.textContent = event.target.dataset.undoText;
+		});
 
-		<?php
-	}
+	</script>
+	<?php
+	do_action( 'wp_footer' );
+	exit;
+}
+add_action( 'edit_form_top', 'tour_edit_form_top' );
 
-	function tour_admin_view_tours() {
+add_filter(
+	'wp_tour',
+	function( $tour ) {
 		$tours = get_posts(
 			array(
 				'post_type'      => 'tour',
@@ -492,60 +408,213 @@ function tour_edit_form_top( $post ) {
 			)
 		);
 
-		?>
-		<ul>
-			<?php
-			foreach ( $tours as $_tour ) {
-				$tour_steps = json_decode( wp_unslash( $_tour->post_content ), true );
-				$tour_name  = $tour_steps[0]['title'];
-				$tour_color = $tour_steps[0]['color'];
-				?>
-				<li>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=tour&tour=' . $_tour->ID ) ); ?>"><?php echo esc_html( $tour_name ); ?></a>
-					<span style="background-color: <?php echo esc_attr( $tour_color ); ?>; width: 20px; height: 20px; display: inline-block;"></span>
-					<?php echo count( $tour_steps ); ?> steps
-					(<?php echo esc_html( $_tour->post_date ); ?>)
-
-				</li>
-				<?php
-			}
+		foreach ( $tours as $_tour ) {
+			$tour_steps         = json_decode( wp_unslash( $_tour->post_content ), true );
+			$tour_name          = $tour_steps[0]['title'];
+			$tour[ $tour_name ] = $tour_steps;
 		}
-		function tour_admin_settings() {}
 
-		function output_tour_button() {
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return;
-			}
+		return $tour;
+	}
+);
+function tour_add_admin_menu() {
+	add_menu_page( 'Tour', 'Tour', 'manage_options', 'tour', 'tour_admin_create_tour', 'dashicons-admin-site-alt3', 6 );
+	add_submenu_page( 'tour', 'Create a new tour', 'Create a new tour', 'manage_options', 'tour', 'tour_admin_create_tour' );
+	add_submenu_page( 'tour', 'Settings', 'Settings', 'manage_options', 'tour-settings', 'tour_admin_settings' );
+}
+
+add_action( 'admin_menu', 'tour_add_admin_menu' );
+function tour_admin_create_tour() {
+	$tours      = get_posts(
+		array(
+			'post_type'      => 'tour',
+			'posts_per_page' => -1,
+		)
+	);
+	$tour_names = array_map( 'get_the_title', $tours );
+	$tour_names = array_map( 'preg_quote', $tour_names );
+	?>
+	<div class="wrap">
+		<h1 class="wp-heading-inline"><?php esc_html_e( 'Create a new tour', 'tour' ); ?></h1>
+		<form id="create-tour">
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th scope="row"><label for="tour_title"><?php esc_html_e( 'Title', 'tour' ); ?></label></th>
+						<td>
+							<input type="text" name="tour_title" id="tour_title" value="Test" class="regular-text" required />
+							<p class="description"><?php esc_html_e( 'This cannot be the name of an already existing tour.', 'tour' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="tour_color"><?php esc_html_e( 'Color', 'tour' ); ?></label></th>
+						<td>
+							<input type="color" name="tour_color" id="tour_color" value="#3939c7" required />
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<button>Start creating the tour</button>
+
+		</form>
+		<div id="ready-tour">
+			<h2><?php esc_html_e( 'Ready to start creating the tour?', 'tour' ); ?></h2>
+			<p><?php esc_html_e( 'Navigate to the page where you want to add your tour and click the button in the bottom corner.', 'tour' ); ?></p>
+			<p><?php esc_html_e( 'Click on the elements you want to highlight and add a description for each step.', 'tour' ); ?></p>
+
+			<img src="<?php echo esc_url( plugins_url( 'assets/images/select-tour-step.gif', __FILE__ ) ); ?>" alt="<?php esc_attr_e( 'Tour creation mode', 'tour' ); ?>" />
+			<p><?php esc_html_e( 'When you are done, come back here and click on the button below.', 'tour' ); ?></p>
+
+			<button id="finished-creating-tour">Finished creating the tour</button>
+		</div>
+	</div>
+	<script>
+		document.querySelector('#create-tour').addEventListener('submit', function(e) {
+			e.preventDefault();
+			setTourCookie( document.querySelector('#tour_title').value, document.querySelector('#tour_color').value );
+			this.style.display = 'none';
+			document.querySelector('#ready-tour').style.display = 'block';
+		});
+
+		document.querySelector('#finished-creating-tour').addEventListener('click', function(e) {
+			e.preventDefault();
+			deleteTourCookie();
+
+			document.querySelector('#ready-tour').style.display = 'none';
+			document.querySelector('#create-tour').style.display = 'block';
+		});
+
+		document.querySelector('#create-tour').style.display = document.cookie.indexOf('tour=') > -1 ? 'none' : 'block';
+		document.querySelector('#ready-tour').style.display = document.cookie.indexOf('tour=') === -1 ? 'none' : 'block';
+	</script>
+
+	<?php
+}
+
+function tour_admin_view_tours() {
+	$tours = get_posts(
+		array(
+			'post_type'      => 'tour',
+			'posts_per_page' => -1,
+		)
+	);
+
+	?>
+	<ul>
+		<?php
+		foreach ( $tours as $_tour ) {
+			$tour_steps = json_decode( wp_unslash( $_tour->post_content ), true );
+			$tour_name  = $tour_steps[0]['title'];
+			$tour_color = $tour_steps[0]['color'];
 			?>
-			<style>
-				#tour-launcher {
-					position: fixed;
-					bottom: 76px;
-					right: 24px;
-					font-size: 13px;
-					cursor: pointer;
-					border: 1px solid #ccc;
-					border-radius: 10px;
-					background: #fff;
-					padding: .5em;
-					line-height: 1;
-					box-shadow: 0 0 3px #999;
-					z-index: 999999;
-				}
-				#tour-launcher:hover {
-					text-shadow: 0 0 1px #999;
-				}
-				#tour-launcher span#tour-title {
-					line-height: 1.3em;
-				}
-			</style>
-			<div id="tour-launcher" style="display: none;">
-				<span class="dashicons dashicons-admin-site-alt3">
-				</span>
-				<span id="tour-title"></span>
-			</div>
+			<li>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=tour&tour=' . $_tour->ID ) ); ?>"><?php echo esc_html( $tour_name ); ?></a>
+				<span style="background-color: <?php echo esc_attr( $tour_color ); ?>; width: 20px; height: 20px; display: inline-block;"></span>
+				<?php echo count( $tour_steps ); ?> steps
+				(<?php echo esc_html( $_tour->post_date ); ?>)
+
+			</li>
 			<?php
 		}
+		?>
+	</ul>
+	<?php
+}
+function tour_admin_settings() {}
 
-		add_action( 'wp_footer', 'output_tour_button' );
-		add_action( 'admin_footer', 'output_tour_button' );
+function output_tour_button() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	?>
+	<style>
+		#tour-launcher {
+			position: fixed;
+			bottom: 76px;
+			right: 24px;
+			font-size: 13px;
+			cursor: pointer;
+			border: 1px solid #ccc;
+			border-radius: 10px;
+			background: #fff;
+			padding: .5em;
+			line-height: 1;
+			box-shadow: 0 0 3px #999;
+			z-index: 999999;
+		}
+		#tour-launcher:hover {
+			text-shadow: 0 0 1px #999;
+		}
+		#tour-launcher span#tour-title {
+			line-height: 1.3em;
+		}
+	</style>
+	<div id="tour-launcher" style="display: none;">
+		<span class="dashicons dashicons-admin-site-alt3">
+		</span>
+		<span id="tour-title"></span>
+	</div>
+	<?php
+}
+
+add_action( 'wp_footer', 'output_tour_button' );
+add_action( 'admin_footer', 'output_tour_button' );
+
+
+add_action('show_user_profile', function() {
+	?>
+	<h2>Tour</h2>
+	<p>Reset your tour progress:</p>
+	<table class="">
+		<thead>
+			<tr>
+				<td>Name</td>
+				<td>Progress</td>
+				<td>Action</td>
+			</tr>
+		</thead>
+	<?php
+	$progress = get_user_option( 'tour-progress', get_current_user_id() );
+	foreach ( apply_filters( 'wp_tour', array() ) as $name => $tour ) {
+		?>
+		<tr>
+			<td><?php echo esc_html( $name ); ?>:</td>
+			<td class="tour-progress" data-not-started-text="<?php esc_attr_e( 'Not started.', 'tour' ); ?>"><?php
+		if ( isset( $progress[$name] ) ) {
+			echo esc_html( $progress[$name] );
+		} else {
+			esc_html_e( 'Not started.', 'tour' );
+		}
+		?></td>
+		<td><a href="" class="reset-tour" data-reset-tour-name="<?php echo esc_html( $name ); ?>">Reset</td>
+		</tr>
+		<?php
+	}
+
+	?>
+	</table>
+	<script>
+document.addEventListener('click', function( event ) {
+	if ( ! event.target.dataset.resetTourName ) {
+		return;
+	}
+
+	event.preventDefault();
+
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
+	xhr.setRequestHeader('Content-Type', 'application/json');
+	xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+	xhr.send(JSON.stringify({
+		tour: event.target.dataset.resetTourName,
+		step: -1
+	}));
+	var p = event.target.closest('tr').querySelector('.tour-progress');
+
+	p.textContent = p.dataset.notStartedText;
+
+} );
+	</script>
+	<?php
+} );

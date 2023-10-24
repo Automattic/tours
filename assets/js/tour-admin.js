@@ -198,7 +198,6 @@ var tourStepSelector = function(event) {
 
 document.addEventListener('keyup', function(event) {
 	if ( event.keyCode === 27 ) {
-		console.log( dialogOpen );
 		if ( dialogOpen ) {
 			dialogOpen = false;
 			return;
