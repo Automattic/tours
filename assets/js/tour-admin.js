@@ -112,12 +112,23 @@ var tourStepSelector = function(event) {
 		while ( elem.parentElement ) {
 			var currentElement = elem.parentElement;
 			var tagName = elem.tagName.toLowerCase();
+			var classes = [];
 
 			if ( elem.id ) {
 				selectors.push( tagName + '#' + elem.id );
 				break;
-			} else if ( elem.className ) {
-				selectors.push( tagName + '.' + elem.className.trim().replace(/(\s+)/g, '.') );
+			}
+
+			elem.classList.forEach( function( c ) {
+				if ( [ 'wp-first-item', 'current' ].includes( c ) ) {
+					return;
+				}
+				classes.push( c );
+			})
+				console.log( classes );
+
+			if ( classes.length ) {
+				selectors.push( tagName + '.' + classes.join( '.') );
 			} else {
 				var index = Array.prototype.indexOf.call(currentElement.children, elem) + 1;
 				selectors.push(tagName + ':nth-child(' + index + ')');
@@ -133,6 +144,7 @@ var tourStepSelector = function(event) {
 	event.preventDefault();
 
 	var selectors = getSelectors(event.target);
+	console.log( selectors );
 
 	dialogOpen = true;
 	var stepName = prompt( 'Enter description for step ' + tourSteps.length );

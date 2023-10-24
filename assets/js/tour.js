@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	} );
 
 	function addPulse(tourName,n) {
+		if ( window.tour[tourName].length <= 1 ) {
+			return;
+		}
 		const selector = window.tour[tourName][1].element;
 		const fields = document.querySelectorAll(selector);
 		for (let i = 0; i < fields.length; i++) {
