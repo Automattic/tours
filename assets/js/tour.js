@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		if ( ! tourSteps.length ) {
 			return;
 		}
-		tourSteps[startStep].popover.description += '<br><a href="" class="dismiss-tour">Dismiss the tour';
+
 		dismissTour = function() {
 			var xhr = new XMLHttpRequest();
 			xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		var driverObj = driver( {
 			showProgress: true,
 			steps: tourSteps,
+			onHighlightStarted: function( element, step, options )  {
+				step.popover.description += '<br><a href="" class="dismiss-tour">Dismiss the tour';
+			},
 			onHighlighted: function( element, step, options )  {
 				var xhr = new XMLHttpRequest();
 				xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
