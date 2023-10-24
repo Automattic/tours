@@ -9,11 +9,29 @@ document.addEventListener('DOMContentLoaded', function() {
 		event.preventDefault();
 		const driver = window.driver.js.driver;
 		const tourName = event.target.dataset.tourName;
-		var tourSteps = window.tour[ tourName ].slice(1);
+		var startStep = 1;
+		if ( typeof wp_tour_settings.progress[tourName] !== 'undefined' ) {
+			startStep = wp_tour_settings.progress[tourName] + 2;
+		}
+
+		var tourSteps = window.tour[ tourName ].slice(startStep);
+		if ( ! tourSteps.length ) {
+			return;
+		}
 		tourSteps[0].element = event.target.closest('.pulse-wrapper');
 		var driverObj = driver( {
 			showProgress: true,
 			steps: tourSteps,
+			onHighlighted: function( element, step, options )  {
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+				xhr.send(JSON.stringify({
+					tour: tourName,
+					step: options.state.activeIndex
+				}));
+			}
 		} );
 		driverObj.drive();
 		const pulse = tourSteps[0].element.querySelector('.pulse');
@@ -21,11 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		pulse.style.display = 'none';
 	} );
 
-	function addPulse(tourName,n) {
-		if ( window.tour[tourName].length <= 1 ) {
+	function addPulse(tourName,n, startStep) {
+		if ( window.tour[tourName].length <= startStep ) {
 			return;
 		}
-		const selector = window.tour[tourName][1].element;
+		const selector = window.tour[tourName][startStep].element;
 		const fields = document.querySelectorAll(selector);
 		for (let i = 0; i < fields.length; i++) {
 			let field = fields[i];
@@ -61,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		var styleElement = document.createElement( 'style' );
 		let n = 0;
 		var style;
+		var startStep;
 
 		document.head.appendChild( styleElement );
 		style = styleElement.sheet;
@@ -88,7 +107,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				'-webkit-animation: animation-' + n + ' 2s infinite;' +
 				'animation: animation-' + n + ' 2s infinite; }',
 				style.cssRules.length );
-			addPulse( tourName, n );
+			startStep = 0;
+			if ( typeof wp_tour_settings.progress[tourName] !== 'undefined' ) {
+				startStep = wp_tour_settings.progress[tourName] + 1;
+			}
+			addPulse( tourName, n, startStep + 1);
 		}
 	};
 	window.loadTour();

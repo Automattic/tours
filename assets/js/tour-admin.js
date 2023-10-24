@@ -48,7 +48,7 @@ function enableTourCreation() {
 				if ( el ) {
 					el.style.outline = '1px dashed ' + tourSteps[0].color;
 				} else {
-					reportMissingSelector( i );
+					reportMissingSelector( tour_name, i, tourSteps[i].selector );
 				}
 			}
 		} else {
@@ -65,8 +65,17 @@ function enableTourCreation() {
 }
 enableTourCreation();
 
-function reportMissingSelector() {
-
+function reportMissingSelector( tour_name, step, selector ) {
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/report-missing');
+	xhr.setRequestHeader('Content-Type', 'application/json');
+	xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+	xhr.send(JSON.stringify({
+		tour: tour_name,
+		selector: selector,
+		step: step,
+		url: location.href,
+	}));
 }
 
 function toggleTourSelector( event ) {

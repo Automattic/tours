@@ -27,6 +27,7 @@ function tour_enqueue_scripts() {
 		array(
 			'nonce'    => wp_create_nonce( 'wp_rest' ),
 			'rest_url' => rest_url(),
+			'progress' => get_user_option( 'tour-progress', get_current_user_id() ),
 		)
 	);
 
@@ -59,12 +60,35 @@ add_action(
 	function() {
 		register_rest_route(
 			'tour/v1',
+			'save-progress',
+			array(
+				'methods'  => 'POST',
+				'callback' => function( WP_REST_Request $request ) {
+					$step = $request->get_param( 'step' );
+					$tour_title = $request->get_param( 'tour' );
+					$tour = get_user_option( 'tour-progress', get_current_user_id() );
+					if ( ! $tour ) {
+						$tour = array();
+					}
+
+					$tour[ $tour_title ] = $step;
+					update_user_option( get_current_user_id(), 'tour-progress', $tour );
+					return array(
+						'success' => true,
+					);
+				},
+			)
+		);
+
+		register_rest_route(
+			'tour/v1',
 			'report-missing',
 			array(
 				'methods'  => 'POST',
 				'callback' => function( WP_REST_Request $request ) {
 					$step = $request->get_param( 'step' );
 					$tour_title = $request->get_param( 'tour' );
+					$selector = $request->get_param( 'selector' );
 					$url = $request->get_param( 'url' );
 
 					$tour = get_page_by_title( $tour_title, OBJECT, 'tour' );
@@ -77,9 +101,12 @@ add_action(
 							$missing_steps[ $step ] = array();
 						}
 						if ( ! isset( $missing_steps[ $step ][ $url ] ) ) {
-							$missing_steps[ $step ][ $url ] = 0;
+							$missing_steps[ $step ][ $url ] = array();
 						}
-						$missing_steps[ $step ][ $url ]++;
+						if ( ! isset( $missing_steps[ $step ][ $url ][ $selector ] ) ) {
+							$missing_steps[ $step ][ $url ][ $selector ] = 0;
+						}
+						$missing_steps[ $step ][ $url ][ $selector ] += 1;
 						update_post_meta( $tour, 'missing_steps', $missing_steps );
 						return array(
 							'success' => true,
@@ -98,6 +125,9 @@ add_action(
 			array(
 				'methods'  => 'POST',
 				'callback' => function( WP_REST_Request $request ) {
+					if ( ! current_user_can( 'manage_options' ) ) {
+						return 0;
+					}
 					$tour_content = $request->get_param( 'tour' );
 					$steps = json_decode( $tour_content, true );
 					$tour_title = $steps[0]['title'];
