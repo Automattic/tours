@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		if ( ! event.target.matches( '.pulse' ) ) {
 			return;
 		}
+		event.preventDefault();
 		const driver = window.driver.js.driver;
 		const tourName = event.target.dataset.tourName;
 		var tourSteps = window.tour[ tourName ].slice(1);
@@ -15,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
 			steps: tourSteps,
 		} );
 		driverObj.drive();
+		const pulse = tourSteps[0].element.querySelector('.pulse');
+		// pulse.parentNode.removeChild( pulse );
+		pulse.style.display = 'none';
 	} );
 
 	function addPulse(tourName,n) {
@@ -24,17 +28,25 @@ document.addEventListener('DOMContentLoaded', function() {
 			let field = fields[i];
 			let wrapper = field.closest('.pulse-wrapper');
 			if (!wrapper) {
-				wrapper = document.createElement('div');
+				if ( field.hasChildNodes() ) {
+					wrapper = field;
+				} else {
+					wrapper = document.createElement('div');
+					field.parentNode.insertBefore(wrapper, field);
+					wrapper.appendChild(field);
+				}
 				wrapper.classList.add("pulse-wrapper");
-				field.parentNode.insertBefore(wrapper, field);
-				wrapper.appendChild(field);
 			}
 			if ( ! wrapper.querySelector('.pulse') ) {
 				const pulse = document.createElement('div');
 				pulse.classList.add("pulse");
 				pulse.classList.add("tour-" + n);
 				pulse.dataset.tourName = tourName;
-				wrapper.insertBefore(pulse,field);
+				if ( field.hasChildNodes() ) {
+					wrapper.insertBefore(pulse,wrapper.firstChild);
+				} else {
+					wrapper.insertBefore(pulse,field);
+				}
 			}
 		}
 	}

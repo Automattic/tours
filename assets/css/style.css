@@ -8,17 +8,3 @@
 	height: 12px;
 	margin: -6px;
 }
-
-.pulse-wrapper {
-	border: 2px dashed transparent;
-	padding: 0.4em;
-	border-radius: 3px;
-	margin-left: calc( -0.4em - 2px );
-	margin-top: calc( -0.4em - 2px );
-	margin-bottom: calc( -0.4em - 2px );
-}
-
-.webui-popover .webui-popover-content {
-	font-size: .9em;
-	color: #fff;
-}
