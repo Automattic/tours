@@ -64,6 +64,9 @@ add_action(
 			array(
 				'methods'  => 'POST',
 				'callback' => function( WP_REST_Request $request ) {
+					if ( ! is_user_logged_in() ) {
+						return array( 'success' => 'logged-out' );
+					}
 					$step = $request->get_param( 'step' );
 					$tour_title = $request->get_param( 'tour' );
 					$tour = get_page_by_title( $tour_title, OBJECT, 'tour' );

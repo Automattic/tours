@@ -109,6 +109,12 @@ var tourStepHighlighter = function(event) {
 	target.style.cursor = 'pointer';
 };
 
+var filter_selectors = function( c ) {
+	return c.indexOf( 'wp-' ) > -1
+	|| c.indexOf( 'page' ) > -1
+	|| c.indexOf( 'post' ) > -1
+	|| c.indexOf( 'column' ) > -1;
+}
 
 var tourStepSelector = function(event) {
 	if ( ! tourSelectorActive ) {
@@ -129,7 +135,7 @@ var tourStepSelector = function(event) {
 			}
 
 			elem.classList.forEach( function( c ) {
-				if ( [ 'wp-first-item', 'current' ].includes( c ) ) {
+				if ( ! filter_selectors( c ) ) {
 					return;
 				}
 				classes.push( c );
