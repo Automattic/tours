@@ -48,7 +48,7 @@ function tour_register_post_type() {
 			'public'       => false,
 			'show_ui'      => true,
 			'show_in_menu' => 'tour',
-			'supports'     => array( 'title', 'editor' ),
+			'supports'     => array( 'title', 'editor', 'revisions' ),
 		)
 	);
 }
@@ -197,7 +197,6 @@ add_filter(
 				if ( ! in_array( $k, array( 'title', 'description'))) {
 					unset($step['popover'][$k]);
 				}
-				$step['popovver'] = sanitize_text_field( $v );
 			}
 			$tour[] = $step;
 		}
@@ -210,14 +209,16 @@ add_filter(
 );
 
 function tour_edit_form_top( $post ) {
-	// return;
 	if ( 'tour' !== get_post_type( $post ) ) {
 		return;
 	}
 
-	$tour = json_decode( $post->post_content, true );
+	$tour = json_decode( wp_unslash( $post->post_content ), true );
 	register_and_do_post_meta_boxes( $post );
+
 	?>
+	<details><summary>JSON</summary>
+	<pre><?php echo esc_html( json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></pre></details>
 	<div id="poststuff">
 		<div id="post-body" class="metabox-holder columns-2">
 			<div id="postbox-container-1" class="postbox-container">
@@ -370,7 +371,7 @@ add_filter(
 		);
 
 		foreach ( $tours as $_tour ) {
-			$tour_steps         = json_decode( $_tour->post_content, true );
+			$tour_steps         = json_decode( wp_unslash( $_tour->post_content ), true );
 			$tour_name          = $tour_steps[0]['title'];
 			$tour[ $tour_name ] = $tour_steps;
 		}
