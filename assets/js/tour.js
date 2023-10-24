@@ -2,6 +2,7 @@
 /* eslint camelcase: "off" */
 
 document.addEventListener('DOMContentLoaded', function() {
+	var dismissTour;
 	document.addEventListener('click', function( event ) {
 		if ( ! event.target.matches( '.pulse' ) ) {
 			return;
@@ -14,10 +15,22 @@ document.addEventListener('DOMContentLoaded', function() {
 		if ( typeof wp_tour_settings.progress[tourName] !== 'undefined' ) {
 			startStep = wp_tour_settings.progress[tourName] + 1;
 		}
-
 		var tourSteps = window.tour[ tourName ].slice(1);
 		if ( ! tourSteps.length ) {
 			return;
+		}
+		tourSteps[startStep].popover.description += '<br><a href="" class="dismiss-tour">Dismiss the tour';
+		dismissTour = function() {
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+			xhr.send(JSON.stringify({
+				tour: tourName,
+				step: window.tour[ tourName ].length - 1
+			}));
+
+			driverObj.destroy();
 		}
 		tourSteps[startStep].element = event.target.closest('.pulse-wrapper');
 		var driverObj = driver( {
@@ -53,6 +66,17 @@ document.addEventListener('DOMContentLoaded', function() {
 		const pulse = tourSteps[startStep].element.querySelector('.pulse');
 		pulse.parentNode.removeChild( pulse );
 	} );
+
+	document.addEventListener('click', function( event ) {
+		if ( ! event.target.matches( '.dismiss-tour' ) ) {
+			return;
+		}
+		event.preventDefault();
+		if ( dismissTour ) {
+			dismissTour();
+		}
+	} );
+
 
 	function addPulse(tourName,n, startStep) {
 		let fields;
