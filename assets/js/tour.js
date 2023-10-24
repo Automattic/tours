@@ -34,8 +34,18 @@ document.addEventListener('DOMContentLoaded', function() {
 				}));
 			},
 			onDestroyStarted: function( element, step, options ) {
-				console.log( options.state.activeIndex );
-				addPulse( tourName, n, options.state.activeIndex + 1 );
+				if ( driverObj.hasNextStep() ) {
+					addPulse( tourName, n, options.state.activeIndex + 1 );
+				} else {
+					var xhr = new XMLHttpRequest();
+					xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
+					xhr.setRequestHeader('Content-Type', 'application/json');
+					xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+					xhr.send(JSON.stringify({
+						tour: tourName,
+						step: options.state.activeIndex
+					}));
+				}
 				driverObj.destroy();
 			}
 		} );
