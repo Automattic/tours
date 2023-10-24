@@ -142,7 +142,7 @@ add_action(
 );
 add_filter( 'post_row_actions', 'my_custom_row_actions', 10, 2 );
 function my_custom_row_actions( $actions, $post ) {
-    if ( $post->post_type != 'tour' ) {
+    if ( $post->post_type !== 'tour' || $post->post_status !== 'trash' ) {
         return $actions;
     }
 

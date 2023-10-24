@@ -109,30 +109,21 @@ var tourStepSelector = function(event) {
 	function getSelectors(elem) {
 		var selectors = [];
 
-		// Find ID selector
-		if ( elem.id ) {
-			selectors.push('#' + elem.id);
-		} else if ( elem.className ) {
-			selectors.push(elem.tagName.toLowerCase()+'.' + elem.className.trim().replace(/(\s+)/g, '.'));
-		} else {
-			// Find DOM nesting selectors
-			while ( elem.parentElement ) {
-				var currentElement = elem.parentElement;
-				var tagName = elem.tagName.toLowerCase();
+		while ( elem.parentElement ) {
+			var currentElement = elem.parentElement;
+			var tagName = elem.tagName.toLowerCase();
 
-				if ( elem.id ) {
-					selectors.push( tagName + '#' + elem.id );
-					break;
-				} else if ( elem.className ) {
-					selectors.push( tagName + '.' + elem.className.trim().replace(/(\s+)/g, '.') );
-
-				} else {
-					var index = Array.prototype.indexOf.call(currentElement.children, elem) + 1;
-					selectors.push(tagName + ':nth-child(' + index + ')');
-				}
-
-				elem = currentElement;
+			if ( elem.id ) {
+				selectors.push( tagName + '#' + elem.id );
+				break;
+			} else if ( elem.className ) {
+				selectors.push( tagName + '.' + elem.className.trim().replace(/(\s+)/g, '.') );
+			} else {
+				var index = Array.prototype.indexOf.call(currentElement.children, elem) + 1;
+				selectors.push(tagName + ':nth-child(' + index + ')');
 			}
+
+			elem = currentElement;
 		}
 
 		return selectors.reverse();
@@ -144,7 +135,7 @@ var tourStepSelector = function(event) {
 	var selectors = getSelectors(event.target);
 
 	dialogOpen = true;
-	var stepName = prompt( 'Enter html for step ' + tourSteps.length );
+	var stepName = prompt( 'Enter description for step ' + tourSteps.length );
 	if ( ! stepName ) {
 		event.target.style.outline = '';
 		return false;
