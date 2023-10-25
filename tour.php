@@ -319,6 +319,7 @@ add_action( 'edit_form_after_editor', function( $post ) {
 	$tour = json_decode( wp_unslash( $post->post_content ), true );
 	if ( ! $tour ) {
 		$color = '#3939c7';
+		$tour = array();
 	} else {
 		$color = $tour[0]['color'];
 		array_shift( $tour );
@@ -328,7 +329,7 @@ add_action( 'edit_form_after_editor', function( $post ) {
 	<div style="border: 1px solid #ccc; border-radius: 4px; padding: .5em; margin-top: 2em">
 		<table class="form-table">
 			<tr>
-				<th scope=""><?php esc_html_e( 'Color', 'tour' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Color', 'tour' ); ?></th>
 				<td>
 					<input type="color" name="color" id="tour_color" value="<?php echo esc_attr( $color  ); ?>" />
 				</td>
