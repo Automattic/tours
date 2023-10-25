@@ -369,7 +369,7 @@ function tour_edit_form_top( $post ) {
 									<tr>
 										<th scope="row"><label for="tour-step-element-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'CSS Selector', 'tour' ); ?></label></th>
 										<td>
-											<textarea name="tour[<?php echo esc_attr( $k ); ?>][element]" rows="7" id="tour-step-element-<?php echo esc_attr( $k ); ?>" class="large-text code tour-step-css"><?php echo esc_html( $step['element'] ); ?></textarea>
+											<textarea name="tour[<?php echo esc_attr( $k ); ?>][element]" rows="7" id="tour-step-element-<?php echo esc_attr( $k ); ?>" class="large-text code tour-step-css"><?php echo esc_html( is_array( $step['element'] ) ? reset( $step['element'] ) : $step['element'] ); ?></textarea>
 										</td>
 									</tr>
 								</tbody>

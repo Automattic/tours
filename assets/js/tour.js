@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
 					xhr.send(JSON.stringify({
 						tour: tourId,
-						step: options.state.activeIndex
+						step: tour_plugin.tours[ tourId ].length
 					}));
 				}
 				driverObj.destroy();
