@@ -411,6 +411,7 @@ function tour_edit_form_top( $post ) {
 			setTourCookie( document.getElementById('post_ID').value );
 		} );
 
+		<?php if ( $post->post_title ) : ?>
 		document.getElementById('add-more-steps').addEventListener('click', function ( event ) {
 			event.preventDefault();
 			setTourCookie( document.getElementById('post_ID').value );
@@ -437,7 +438,7 @@ function tour_edit_form_top( $post ) {
 			} );
 			driverObj.drive();
 		} );
-
+		<?php endif; ?>
 		var updateArrows = function() {
 			document.querySelectorAll('.step').forEach( function( element ) {
 				element.querySelector('.tour-move-up').style.display = element.previousElementSibling ? 'inline' : 'none';
