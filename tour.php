@@ -387,18 +387,18 @@ function tour_edit_form_top( $post ) {
 
 						</div>
 						<?php
-
-					}
-					?>
-				</div>
-			</form>
-			<?php if ( $post->post_title ) : ?>
-				<button id="add-more-steps" class="button"><?php esc_html_e( 'Add Steps', 'tour' ); ?></button>
-			<?php else : ?>
-				<p class="description">
-					Set a title to add tour steps.
-				</p>
-			<?php endif; ?>
+						}
+						?>
+					</div>
+				</form>
+				<?php if ( $post->post_title ) : ?>
+					<button id="add-more-steps" class="button"><?php esc_html_e( 'Add Steps', 'tour' ); ?></button>
+				<?php else : ?>
+					<p class="description">
+						Set a title to add tour steps.
+					</p>
+				<?php endif; ?>
+			</div>
 		</div>
 	</div>
 	<style>
