@@ -13,6 +13,12 @@
 defined( 'ABSPATH' ) || die();
 
 function tour_enqueue_scripts() {
+	static $once = false;
+	if ( $once ) {
+		return;
+	}
+	$once = true;
+
 	wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
 	wp_register_style( 'tour-css', plugins_url( 'assets/css/style.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/style.css' ) );
 	wp_enqueue_style( 'driver-js' );
@@ -38,6 +44,7 @@ function tour_enqueue_scripts() {
 
 add_action( 'admin_enqueue_scripts', 'tour_enqueue_scripts' );
 add_action( 'wp_enqueue_scripts', 'tour_enqueue_scripts' );
+add_action( 'gp_head', 'wp_enqueue_scripts' );
 
 function tour_register_post_type() {
 	register_post_type(
