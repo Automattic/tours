@@ -274,6 +274,24 @@ add_filter(
 	2
 );
 
+add_action( 'admin_init', function() {
+	add_meta_box(
+		'tour-content',
+		'JSON',
+		function( $post ) {
+			$tour = json_decode( wp_unslash( $post->post_content ), true );
+			if ( $tour ) {
+				?><pre style="overflow: auto"><?php echo esc_html( json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></pre>
+				<?php
+			}
+		},
+		'tour',
+		'side',
+		'low',
+		array('collapsed' => true)
+	);
+} );
+
 function tour_edit_form_top( $post ) {
 	if ( 'tour' !== get_post_type( $post ) ) {
 		return;
@@ -291,20 +309,13 @@ function tour_edit_form_top( $post ) {
 	register_and_do_post_meta_boxes( $post );
 
 	?>
-	<details><summary>JSON</summary>
-		<pre><?php echo esc_html( json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></pre>
-	</details>
 	<div id="poststuff">
 		<div id="post-body" class="metabox-holder columns-2">
 			<div id="postbox-container-1" class="postbox-container">
 				<?php
 				do_action( 'submitpost_box', $post );
 				do_meta_boxes( 'tour', 'side', $post );
-
-				// Add one more metabox html
 				?>
-
-
 			</div>
 			<div id="postbox-container-2" class="postbox-container">
 				<table>
@@ -372,6 +383,11 @@ function tour_edit_form_top( $post ) {
 			<?php endif; ?>
 		</div>
 	</div>
+	<style>
+		#driver-popover-content {
+			max-width: none;
+		}
+	</style>
 	<script>
 		document.getElementById('post').addEventListener('submit', function ( event ) {
 			setTourCookie( document.getElementById('post_ID').value );
@@ -393,7 +409,6 @@ function tour_edit_form_top( $post ) {
 						}
 					},
 					{
-						element: '#tour-launcher',
 						popover: {
 							title: 'Select the element to highlight',
 							description: '<img src="<?php echo esc_url( plugins_url( 'assets/images/select-tour-step.gif', __FILE__ ) ); ?>" alt="<?php esc_attr_e( 'Tour creation mode', 'tour' ); ?>" width="525" height="166" />',
