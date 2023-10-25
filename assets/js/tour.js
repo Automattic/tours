@@ -9,25 +9,24 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		event.preventDefault();
 		const driver = window.driver.js.driver;
-		const tourName = event.target.dataset.tourName;
-		const n = event.target.dataset.n;
+		const tourId = event.target.dataset.tourId;
 		var startStep = 0;
-		if ( typeof wp_tour_settings.progress[tourName] !== 'undefined' ) {
-			startStep = wp_tour_settings.progress[tourName] + 1;
+		if ( typeof tour.progress[ tourId ] !== 'undefined' ) {
+			startStep = tour.progress[ tourId ] + 1;
 		}
-		var tourSteps = window.tour[ tourName ].slice(1);
+		var tourSteps = tour.tours[ tourId ].slice(1);
 		if ( ! tourSteps.length ) {
 			return;
 		}
 
 		dismissTour = function() {
 			var xhr = new XMLHttpRequest();
-			xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
+			xhr.open('POST', tour.rest_url + 'tour/v1/save-progress');
 			xhr.setRequestHeader('Content-Type', 'application/json');
-			xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+			xhr.setRequestHeader('X-WP-Nonce', tour.nonce);
 			xhr.send(JSON.stringify({
-				tour: tourName,
-				step: window.tour[ tourName ].length - 1
+				tour: tourId,
+				step: tour.tours[ tourId ].length - 1
 			}));
 
 			driverObj.destroy();
@@ -41,24 +40,24 @@ document.addEventListener('DOMContentLoaded', function() {
 			},
 			onHighlighted: function( element, step, options )  {
 				var xhr = new XMLHttpRequest();
-				xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
+				xhr.open('POST', tour.rest_url + 'tour/v1/save-progress');
 				xhr.setRequestHeader('Content-Type', 'application/json');
-				xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+				xhr.setRequestHeader('X-WP-Nonce', tour.nonce);
 				xhr.send(JSON.stringify({
-					tour: tourName,
+					tour: tourId,
 					step: options.state.activeIndex - 1
 				}));
 			},
 			onDestroyStarted: function( element, step, options ) {
 				if ( driverObj.hasNextStep() ) {
-					addPulse( tourName, n, options.state.activeIndex + 1 );
+					addPulse( tourId, tourId, options.state.activeIndex + 1 );
 				} else {
 					var xhr = new XMLHttpRequest();
-					xhr.open('POST', wp_tour_settings.rest_url + 'tour/v1/save-progress');
+					xhr.open('POST', tour.rest_url + 'tour/v1/save-progress');
 					xhr.setRequestHeader('Content-Type', 'application/json');
-					xhr.setRequestHeader('X-WP-Nonce', wp_tour_settings.nonce);
+					xhr.setRequestHeader('X-WP-Nonce', tour.nonce);
 					xhr.send(JSON.stringify({
-						tour: tourName,
+						tour: tourId,
 						step: options.state.activeIndex
 					}));
 				}
@@ -81,17 +80,24 @@ document.addEventListener('DOMContentLoaded', function() {
 	} );
 
 
-	function addPulse(tourName,n, startStep) {
+	function addPulse( tourId, startStep) {
 		let fields;
-		if ( window.tour[tourName].length <= startStep ) {
+		if ( tour.tours[ tourId ].length <= startStep ) {
 			return;
 		}
-		const selector = window.tour[tourName][startStep].element;
+		const selector = tour.tours[ tourId ][startStep].element;
+		console.log( 'selector',selector );
 		if ( typeof selector === 'string' ) {
-			fields = document.querySelectorAll(selector);
+			try {
+				fields = document.querySelectorAll(selector);
+			} catch {
+				fields = [];
+			}
 		} else {
 			fields = [ selector ];
 		}
+				console.log( fields );
+
 		for (let i = 0; i < fields.length; i++) {
 			let field = fields[i];
 			let wrapper = field.closest('.pulse-wrapper');
@@ -108,9 +114,9 @@ document.addEventListener('DOMContentLoaded', function() {
 			if ( ! wrapper.querySelector('.pulse') ) {
 				const pulse = document.createElement('div');
 				pulse.classList.add("pulse");
-				pulse.classList.add("tour-" + n);
-				pulse.dataset.tourName = tourName;
-				pulse.dataset.n = n;
+				pulse.classList.add("tour-" + tourId);
+				pulse.dataset.tourId = tourId;
+				pulse.dataset.tourId = tourId;
 				if ( field.hasChildNodes() ) {
 					wrapper.insertBefore(pulse,wrapper.firstChild);
 				} else {
@@ -120,23 +126,20 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
-	window.tour = wp_tour;
-	window.loadTour = function() {
+	const loadTour = function() {
 		var color1 = '';
 		var color2 = '';
 		var styleElement = document.createElement( 'style' );
-		let n = 0;
 		var style;
 		var startStep;
 
 		document.head.appendChild( styleElement );
 		style = styleElement.sheet;
 
-		for ( const tourName in window.tour ) {
-			n += 1;
-			color1 = window.tour[ tourName ][ 0 ].color;
-			color2 = window.tour[ tourName ][ 0 ].color + 'a0';
-			style.insertRule( '@keyframes animation-' + n + ' {' +
+		for ( const tourId in tour.tours ) {
+			color1 = tour.tours[ tourId ][ 0 ].color;
+			color2 = tour.tours[ tourId ][ 0 ].color + 'a0';
+			style.insertRule( '@keyframes animation-' + tourId + ' {' +
 				'0% {' +
 				'box-shadow: 0 0 0 0 ' + color2 + ';' +
 				'}' +
@@ -149,19 +152,19 @@ document.addEventListener('DOMContentLoaded', function() {
 				'}',
 				style.cssRules.length );
 
-			style.insertRule( '.tour-' + n + '{' +
+			style.insertRule( '.tour-' + tourId + '{' +
 				'box-shadow: 0 0 0 ' + color2 + ';' +
 				'background: ' + color1 + '80' + ';' +
-				'-webkit-animation: animation-' + n + ' 2s infinite;' +
-				'animation: animation-' + n + ' 2s infinite; }',
+				'-webkit-animation: animation-' + tourId + ' 2s infinite;' +
+				'animation: animation-' + tourId + ' 2s infinite; }',
 				style.cssRules.length );
 			startStep = 0;
-			if ( typeof wp_tour_settings.progress[tourName] !== 'undefined' ) {
-				startStep = wp_tour_settings.progress[tourName] + 1;
+			if ( typeof tour.progress[ tourId ] !== 'undefined' ) {
+				startStep = tour.progress[ tourId ] + 1;
 			}
-			addPulse( tourName, n, startStep + 1);
+			addPulse( tourId, startStep + 1);
 		}
 	};
-	window.loadTour();
+	loadTour();
 }
 );
