@@ -68,7 +68,7 @@ function tour_register_post_type() {
 			'show_ui'      => true,
 			'show_in_nav_menus'      => true,
 			'show_in_menu' => 'tour',
-			'supports'     => array( 'title', 'editor', 'revisions' ),
+			'supports'     => array( 'title', 'revisions' ),
 		)
 	);
 }
@@ -241,17 +241,18 @@ add_filter(
 			return $data;
 		}
 
-		if ( ! isset( $_POST['tour'] ) || ! isset( $_POST['tour'][0]['title'] ) || 'tour' !== $data['post_type'] ) {
+		if ( ! isset( $_POST['tour'] ) || ! isset( $_POST['color'] ) || 'tour' !== $data['post_type'] ) {
 			return $data;
 		}
 
+		$data['post_title'] = sanitize_text_field( $_POST['post_title'] );
+
 		$tour = array(
-			array()
+			array(
+				'color' => sanitize_text_field( $_POST['color'] ),
+				'title' => $data['post_title'],
+			)
 		);
-		foreach ( $_POST['tour'][0] as $k => $v ) {
-			$tour[0][$k] = sanitize_text_field( $v );
-		}
-		$data['post_title'] = $tour[0]['title'];
 
 		if ( isset( $_POST['override_json'] ) ) {
 			$data['post_content'] = sanitize_text_field( $_POST['json'] );
@@ -310,97 +311,75 @@ add_action( 'admin_init', function() {
 	);
 } );
 
-function tour_edit_form_top( $post ) {
+add_action( 'edit_form_after_editor', function( $post ) {
 	if ( 'tour' !== get_post_type( $post ) ) {
 		return;
 	}
 
 	$tour = json_decode( wp_unslash( $post->post_content ), true );
 	if ( ! $tour ) {
-		$tour = array(
-			array(
-				'title' => $post->post_title,
-				'color' => '#3939c7',
-			)
-		);
+		$color = '#3939c7';
+	} else {
+		$color = $tour[0]['color'];
+		array_shift( $tour );
 	}
-	register_and_do_post_meta_boxes( $post );
 
 	?>
-	<div id="poststuff">
-		<div id="post-body" class="metabox-holder columns-2">
-			<div id="postbox-container-1" class="postbox-container">
-				<?php
-				do_action( 'submitpost_box', $post );
-				do_meta_boxes( 'tour', 'side', $post );
-				?>
-			</div>
-			<div id="postbox-container-2" class="postbox-container">
-				<table>
-					<tr>
-						<td>Title</td>
-						<td>
-							<input type="text" name="tour[0][title]" id="tour_title" value="<?php echo esc_attr( $tour[0]['title'] ); ?>" class="regular-text" required />
-						</td>
-						<td>Color</td>
-						<td>
-							<input type="color" name="tour[0][color]"  id="tour_color" value="<?php echo esc_attr( $tour[0]['color']  ); ?>" />
-						</td>
-					</tr>
-
-				</table>
-				<div id="steps">
-					<?php
-					foreach ( $tour as $k => $step ) {
-						if ( 0 === $k ) {
-							continue;
-						}
-						?>
-						<div class="step" style="border: 1px solid #ccc; border-radius: 4px; padding: .5em; margin-top: 2em">
-							<input type="hidden" name="order[]" value="<?php echo esc_attr( $k ); ?>"/>
-							<table class="form-table">
-								<tbody>
-									<tr>
-										<th scope="row"><label for="tour-title-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Title', 'tour' ); ?></label><br>
-										</th>
-										<td>
-											<input name="tour[<?php echo esc_attr( $k ); ?>][popover][title]" rows="7" id="tour-step-title-<?php echo esc_attr( $k ); ?>" class="regular-text" value="<?php echo esc_attr( $step['popover']['title'] ); ?>"/>
-										</td>
-									</tr>
-									<tr>
-										<th scope="row"><label for="tour-step-description-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Description', 'tour' ); ?></label></th>
-										<td>
-											<textarea name="tour[<?php echo esc_attr( $k ); ?>][popover][description]" rows="7" id="tour-step-description-<?php echo esc_attr( $k ); ?>" class="large-text"><?php echo esc_html( $step['popover']['description'] ); ?></textarea>
-										</td>
-									</tr>
-									<tr>
-										<th scope="row"><label for="tour-step-element-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'CSS Selector', 'tour' ); ?></label></th>
-										<td>
-											<textarea name="tour[<?php echo esc_attr( $k ); ?>][element]" rows="7" id="tour-step-element-<?php echo esc_attr( $k ); ?>" class="large-text code tour-step-css"><?php echo esc_html( is_array( $step['element'] ) ? reset( $step['element'] ) : $step['element'] ); ?></textarea>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-							<a href="#" class="delete-tour-step" data-delete-text="<?php esc_attr_e( 'Delete', 'tour' ); ?>" data-undo-text="<?php esc_attr_e( 'Undo Delete', 'tour' ); ?>"><?php esc_html_e( 'Delete', 'tour' ); ?></a>
-							<a href="#" class="tour-move-up"><?php esc_html_e( 'Move Up', 'tour' ); ?></a>
-							<a href="#" class="tour-move-down"><?php esc_html_e( 'Move Down', 'tour' ); ?></a>
-
-						</div>
-						<?php
-						}
-						?>
-					</div>
-				</form>
-				<?php if ( $post->post_title ) : ?>
-					<button id="add-more-steps" class="button"><?php esc_html_e( 'Add Steps', 'tour' ); ?></button>
-				<?php else : ?>
-					<p class="description">
-						Set a title to add tour steps.
-					</p>
-				<?php endif; ?>
-			</div>
-		</div>
+	<div style="border: 1px solid #ccc; border-radius: 4px; padding: .5em; margin-top: 2em">
+		<table class="form-table">
+			<tr>
+				<th scope=""><?php esc_html_e( 'Color', 'tour' ); ?></th>
+				<td>
+					<input type="color" name="color" id="tour_color" value="<?php echo esc_attr( $color  ); ?>" />
+				</td>
+			</tr>
+		</table>
 	</div>
+	<div id="steps">
+		<?php
+		foreach ( $tour as $k => $step ) {
+			?>
+			<div class="step" style="border: 1px solid #ccc; border-radius: 4px; padding: .5em; margin-top: 2em">
+				<input type="hidden" name="order[]" value="<?php echo esc_attr( $k ); ?>"/>
+				<table class="form-table">
+					<tbody>
+						<tr>
+							<th scope="row"><label for="tour-title-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Title', 'tour' ); ?></label><br>
+							</th>
+							<td>
+								<input name="tour[<?php echo esc_attr( $k ); ?>][popover][title]" rows="7" id="tour-step-title-<?php echo esc_attr( $k ); ?>" class="regular-text" value="<?php echo esc_attr( $step['popover']['title'] ); ?>"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="tour-step-description-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Description', 'tour' ); ?></label></th>
+							<td>
+								<textarea name="tour[<?php echo esc_attr( $k ); ?>][popover][description]" rows="7" id="tour-step-description-<?php echo esc_attr( $k ); ?>" class="large-text"><?php echo esc_html( $step['popover']['description'] ); ?></textarea>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="tour-step-element-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'CSS Selector', 'tour' ); ?></label></th>
+							<td>
+								<textarea name="tour[<?php echo esc_attr( $k ); ?>][element]" rows="7" id="tour-step-element-<?php echo esc_attr( $k ); ?>" class="large-text code tour-step-css"><?php echo esc_html( is_array( $step['element'] ) ? reset( $step['element'] ) : $step['element'] ); ?></textarea>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<a href="#" class="delete-tour-step" data-delete-text="<?php esc_attr_e( 'Delete', 'tour' ); ?>" data-undo-text="<?php esc_attr_e( 'Undo Delete', 'tour' ); ?>"><?php esc_html_e( 'Delete', 'tour' ); ?></a>
+				<a href="#" class="tour-move-up"><?php esc_html_e( 'Move Up', 'tour' ); ?></a>
+				<a href="#" class="tour-move-down"><?php esc_html_e( 'Move Down', 'tour' ); ?></a>
+
+			</div>
+			<?php
+			}
+			?>
+		</div>
+	<?php if ( $post->post_title ) : ?>
+		<br/><button id="add-more-steps" class="button"><?php esc_html_e( 'Add Steps', 'tour' ); ?></button>
+	<?php else : ?>
+		<p class="description">
+			Set a title to add tour steps.
+		</p>
+	<?php endif; ?>
 	<style>
 		#driver-popover-content {
 			max-width: none;
@@ -496,10 +475,8 @@ function tour_edit_form_top( $post ) {
 
 	</script>
 	<?php
-	do_action( 'wp_footer' );
-	exit;
 }
-add_action( 'edit_form_top', 'tour_edit_form_top' );
+);
 
 add_filter(
 	'tour_list',

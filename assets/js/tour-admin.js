@@ -36,7 +36,7 @@ function enableTourCreation() {
 		if ( typeof tour_plugin !== 'undefined' && typeof tour_plugin.tours[ tourId ] !== 'undefined' ) {
 			document.getElementById('tour-launcher').style.display = 'block';
 			document.getElementById('tour-title').textContent = tour_plugin.tours[ tourId ][0].title;
-			document.getElementById('tour-steps').textContent = (tour_plugin.tours[ tourId ].length - 1) + ' step' + (tour_plugin.tours[ tourId ].length ? 's' : '');
+			document.getElementById('tour-steps').textContent = (tour_plugin.tours[ tourId ].length - 1) + ' step' + (tour_plugin.tours[ tourId ].length > 2 ? 's' : '');
 			for ( var i = 1; i < tour_plugin.tours[ tourId ].length; i++ ) {
 				el = document.querySelector(tour_plugin.tours[ tourId ][i].selector);
 				if ( el ) {
@@ -180,7 +180,7 @@ var tourStepSelector = function(event) {
 			steps: JSON.stringify(tour_plugin.tours[ tourId ]),
 		}));
 
-		document.getElementById('tour-steps').textContent = (tour_plugin.tours[ tourId ].length - 1) + ' step' + (tour_plugin.tours[ tourId ].length ? 's' : '');
+		document.getElementById('tour-steps').textContent = (tour_plugin.tours[ tourId ].length - 1) + ' step' + (tour_plugin.tours[ tourId ].length > 2 ? 's' : '');
 		document.getElementById('tour-title').textContent = 'Saved!';
 
 		window.loadTour();
