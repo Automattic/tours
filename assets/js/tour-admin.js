@@ -36,6 +36,7 @@ function enableTourCreation() {
 		if ( typeof tour_plugin !== 'undefined' && typeof tour_plugin.tours[ tourId ] !== 'undefined' ) {
 			document.getElementById('tour-launcher').style.display = 'block';
 			document.getElementById('tour-title').textContent = tour_plugin.tours[ tourId ][0].title;
+			document.getElementById('tour-steps').textContent = (tour_plugin.tours[ tourId ].length - 1) + ' step' + (tour_plugin.tours[ tourId ].length ? 's' : '');
 			for ( var i = 1; i < tour_plugin.tours[ tourId ].length; i++ ) {
 				el = document.querySelector(tour_plugin.tours[ tourId ][i].selector);
 				if ( el ) {
@@ -48,7 +49,6 @@ function enableTourCreation() {
 	} else if ( document.getElementById('tour-launcher') ) {
 		document.getElementById('tour-launcher').style.display = 'none';
 	}
-
 }
 enableTourCreation();
 
@@ -67,6 +67,11 @@ function reportMissingSelector( tourTitle, step, selector ) {
 
 function toggleTourSelector( event ) {
 	event.stopPropagation();
+	if ( event.target.tagName.toLowerCase() === 'a' ) {
+		deleteTourCookie();
+		return false;
+	}
+
 	tourSelectorActive = ! tourSelectorActive;
 
 	document.getElementById('tour-launcher').style.color = tourSelectorActive ? tour_plugin.tours[ tourId ][0].color : '';
@@ -75,10 +80,12 @@ function toggleTourSelector( event ) {
 
 document.getElementById('tour-launcher').addEventListener('click', toggleTourSelector);
 var clearHighlight = function( event ) {
-	for ( var i = 1; i < tour_plugin.tours[ tourId ].length; i++ ) {
-		if ( event.target.matches(tour_plugin.tours[ tourId ][i].selector) ) {
-			document.querySelector(tour_plugin.tours[ tourId ][i].selector).style.outline = '1px dashed ' + tour_plugin.tours[ tourId ][0].color;
-			return;
+	if ( typeof tour_plugin.tours[ tourId ] !== 'undefined' ) {
+		for ( var i = 1; i < tour_plugin.tours[ tourId ].length; i++ ) {
+			if ( event.target.matches(tour_plugin.tours[ tourId ][i].selector) ) {
+				document.querySelector(tour_plugin.tours[ tourId ][i].selector).style.outline = '1px dashed ' + tour_plugin.tours[ tourId ][0].color;
+				return;
+			}
 		}
 	}
 	event.target.style.outline = '';
@@ -173,6 +180,7 @@ var tourStepSelector = function(event) {
 			steps: JSON.stringify(tour_plugin.tours[ tourId ]),
 		}));
 
+		document.getElementById('tour-steps').textContent = (tour_plugin.tours[ tourId ].length - 1) + ' step' + (tour_plugin.tours[ tourId ].length ? 's' : '');
 		document.getElementById('tour-title').textContent = 'Saved!';
 
 		window.loadTour();

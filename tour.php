@@ -30,7 +30,7 @@ function tour_enqueue_scripts() {
 		)
 	);
 
-	if ( current_user_can( 'manage_options' ) ) {
+	if ( current_user_can( 'edit_posts' ) ) {
 		wp_register_script( 'tour-admin', plugins_url( 'assets/js/tour-admin.js', __FILE__ ), array(  'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-admin.js' ), true );
 		wp_enqueue_script( 'tour-admin' );
 	}
@@ -157,7 +157,7 @@ add_action(
 			array(
 				'methods'  => 'POST',
 				'callback' => function( WP_REST_Request $request ) {
-					if ( ! current_user_can( 'manage_options' ) ) {
+					if ( ! current_user_can( 'edit_posts' ) ) {
 						return array(
 							'success' => false,
 						);
@@ -280,9 +280,13 @@ add_filter(
 	2
 );
 
+add_action( 'postbox_classes_tour_tour-json', function( $classes ) {
+	$classes[] = 'closed';
+	return $classes;
+});
 add_action( 'admin_init', function() {
 	add_meta_box(
-		'tour-content',
+		'tour-json',
 		'JSON',
 		function( $post ) {
 			$tour = json_decode( wp_unslash( $post->post_content ), true );
@@ -295,8 +299,7 @@ add_action( 'admin_init', function() {
 		},
 		'tour',
 		'side',
-		'low',
-		array('collapsed' => true)
+		'low'
 	);
 } );
 
@@ -497,7 +500,7 @@ add_filter(
 			'post_type'      => 'tour',
 			'posts_per_page' => -1,
 		);
-		if ( current_user_can( 'manage_options' ) ) {
+		if ( current_user_can( 'edit_posts' ) ) {
 			$args['post_status'] = array( 'publish', 'draft' );
 		}
 		$tours = get_posts( $args );
@@ -520,8 +523,8 @@ add_filter(
 );
 
 function tour_add_admin_menu() {
-	add_menu_page( 'Tour', 'Tour', 'manage_options', 'tour', 'tour', 'dashicons-admin-site-alt3', 6 );
-	add_submenu_page( 'tour', 'Settings', 'Settings', 'manage_options', 'tour-settings', 'tour_admin_settings' );
+	add_menu_page( 'Tour', 'Tour', 'edit_posts', 'tour', 'tour', 'dashicons-admin-site-alt3', 6 );
+	add_submenu_page( 'tour', 'Settings', 'Settings', 'edit_posts', 'tour-settings', 'tour_admin_settings' );
 }
 
 add_action( 'admin_menu', 'tour_add_admin_menu' );
@@ -529,7 +532,7 @@ add_action( 'admin_menu', 'tour_add_admin_menu' );
 function tour_admin_settings() {}
 
 function output_tour_button() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'edit_posts' ) ) {
 		return;
 	}
 	?>
@@ -539,7 +542,6 @@ function output_tour_button() {
 			bottom: 76px;
 			right: 24px;
 			font-size: 13px;
-			cursor: pointer;
 			border: 1px solid #ccc;
 			border-radius: 10px;
 			background: #fff;
@@ -548,24 +550,28 @@ function output_tour_button() {
 			box-shadow: 0 0 3px #999;
 			z-index: 999999;
 		}
-		#tour-launcher:hover {
-			text-shadow: 0 0 1px #999;
-		}
 		#tour-launcher span#tour-title {
+			cursor: pointer;
 			line-height: 1.3em;
+		}
+		#tour-launcher span#tour-title:hover {
+			text-shadow: 0 0 1px #999;
 		}
 	</style>
 	<div id="tour-launcher" style="display: none;">
-		<span class="dashicons dashicons-admin-site-alt3">
-		</span>
+		<span class="dashicons dashicons-admin-site-alt3"></span>
 		<span id="tour-title"></span>
+		<br>
+		<span style="float: right">
+		<span id="tour-steps"></span>
+		<a href="">close</a>
+		</span>
 	</div>
 	<?php
 }
 
 add_action( 'wp_footer', 'output_tour_button' );
 add_action( 'admin_footer', 'output_tour_button' );
-
 
 add_action('show_user_profile', function() {
 	?>
