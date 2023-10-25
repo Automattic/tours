@@ -11,22 +11,25 @@ document.addEventListener('DOMContentLoaded', function() {
 		const driver = window.driver.js.driver;
 		const tourId = event.target.dataset.tourId;
 		var startStep = 0;
-		if ( typeof tour.progress[ tourId ] !== 'undefined' ) {
-			startStep = tour.progress[ tourId ] + 1;
+		if ( typeof tour_plugin.progress[ tourId ] !== 'undefined' ) {
+			startStep = tour_plugin.progress[ tourId ] - 1;
 		}
-		var tourSteps = tour.tours[ tourId ].slice(1);
+		if ( startStep <= 0 ) {
+			startStep = 0;
+		}
+		var tourSteps = tour_plugin.tours[ tourId ].slice(1);
 		if ( ! tourSteps.length ) {
 			return;
 		}
 
 		dismissTour = function() {
 			var xhr = new XMLHttpRequest();
-			xhr.open('POST', tour.rest_url + 'tour/v1/save-progress');
+			xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
 			xhr.setRequestHeader('Content-Type', 'application/json');
-			xhr.setRequestHeader('X-WP-Nonce', tour.nonce);
+			xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
 			xhr.send(JSON.stringify({
 				tour: tourId,
-				step: tour.tours[ tourId ].length - 1
+				step: tour_plugin.tours[ tourId ].length
 			}));
 
 			driverObj.destroy();
@@ -40,22 +43,22 @@ document.addEventListener('DOMContentLoaded', function() {
 			},
 			onHighlighted: function( element, step, options )  {
 				var xhr = new XMLHttpRequest();
-				xhr.open('POST', tour.rest_url + 'tour/v1/save-progress');
+				xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
 				xhr.setRequestHeader('Content-Type', 'application/json');
-				xhr.setRequestHeader('X-WP-Nonce', tour.nonce);
+				xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
 				xhr.send(JSON.stringify({
 					tour: tourId,
-					step: options.state.activeIndex - 1
+					step: options.state.activeIndex + 1
 				}));
 			},
 			onDestroyStarted: function( element, step, options ) {
 				if ( driverObj.hasNextStep() ) {
-					addPulse( tourId, tourId, options.state.activeIndex + 1 );
+					addPulse( tourId, options.state.activeIndex + 1 );
 				} else {
 					var xhr = new XMLHttpRequest();
-					xhr.open('POST', tour.rest_url + 'tour/v1/save-progress');
+					xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
 					xhr.setRequestHeader('Content-Type', 'application/json');
-					xhr.setRequestHeader('X-WP-Nonce', tour.nonce);
+					xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
 					xhr.send(JSON.stringify({
 						tour: tourId,
 						step: options.state.activeIndex
@@ -80,23 +83,24 @@ document.addEventListener('DOMContentLoaded', function() {
 	} );
 
 
-	function addPulse( tourId, startStep) {
+	function addPulse( tourId, startStep ) {
 		let fields;
-		if ( tour.tours[ tourId ].length <= startStep ) {
+		if ( startStep === 0 ) {
+			startStep = 1;
+		}
+		if ( tour_plugin.tours[ tourId ].length <= startStep ) {
 			return;
 		}
-		const selector = tour.tours[ tourId ][startStep].element;
-		console.log( 'selector',selector );
+		const selector = tour_plugin.tours[ tourId ][ startStep ].element;
 		if ( typeof selector === 'string' ) {
 			try {
-				fields = document.querySelectorAll(selector);
+				fields = document.querySelectorAll( selector );
 			} catch {
 				fields = [];
 			}
 		} else {
 			fields = [ selector ];
 		}
-				console.log( fields );
 
 		for (let i = 0; i < fields.length; i++) {
 			let field = fields[i];
@@ -136,9 +140,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		document.head.appendChild( styleElement );
 		style = styleElement.sheet;
 
-		for ( const tourId in tour.tours ) {
-			color1 = tour.tours[ tourId ][ 0 ].color;
-			color2 = tour.tours[ tourId ][ 0 ].color + 'a0';
+		for ( const tourId in tour_plugin.tours ) {
+			color1 = tour_plugin.tours[ tourId ][ 0 ].color;
+			color2 = tour_plugin.tours[ tourId ][ 0 ].color + 'a0';
 			style.insertRule( '@keyframes animation-' + tourId + ' {' +
 				'0% {' +
 				'box-shadow: 0 0 0 0 ' + color2 + ';' +
@@ -159,10 +163,10 @@ document.addEventListener('DOMContentLoaded', function() {
 				'animation: animation-' + tourId + ' 2s infinite; }',
 				style.cssRules.length );
 			startStep = 0;
-			if ( typeof tour.progress[ tourId ] !== 'undefined' ) {
-				startStep = tour.progress[ tourId ] + 1;
+			if ( typeof tour_plugin.progress[ tourId ] !== 'undefined' ) {
+				startStep = tour_plugin.progress[ tourId ];
 			}
-			addPulse( tourId, startStep + 1);
+			addPulse( tourId, startStep );
 		}
 	};
 	loadTour();

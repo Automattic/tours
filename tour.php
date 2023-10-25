@@ -22,7 +22,7 @@ function tour_enqueue_scripts() {
 	wp_enqueue_script( 'tour' );
 	wp_localize_script(
 		'tour',
-		'tour', array(
+		'tour_plugin', array(
 			'tours'    => apply_filters( 'tour_list', array() ),
 			'nonce'    => wp_create_nonce( 'wp_rest' ),
 			'rest_url' => rest_url(),
@@ -34,7 +34,6 @@ function tour_enqueue_scripts() {
 		wp_register_script( 'tour-admin', plugins_url( 'assets/js/tour-admin.js', __FILE__ ), array(  'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-admin.js' ), true );
 		wp_enqueue_script( 'tour-admin' );
 	}
-
 }
 
 add_action( 'admin_enqueue_scripts', 'tour_enqueue_scripts' );
@@ -201,22 +200,24 @@ add_action(
 	}
 );
 
-add_filter( 'post_row_actions', 'my_custom_row_actions', 10, 2 );
-function my_custom_row_actions( $actions, $post ) {
-	if ( $post->post_type !== 'tour' || $post->post_status === 'trash' ) {
+add_filter(
+	'post_row_actions',
+	function( $actions, $post ) {
+		if ( $post->post_type !== 'tour' || $post->post_status === 'trash' ) {
+			return $actions;
+		}
+
+		$tour_steps = json_decode( wp_unslash( $post->post_content ), true );
+		if ( empty( $tour_steps[0]['title'] ) ) {
+			return $actions;
+		}
+
+		$caption = __( 'Add more steps', 'tour' );
+
+		$actions['add-more-steps'] = '<a href="' . get_permalink( $post->ID ) . '" data-tour-id="' . esc_attr( $post->ID ) . '" data-add-more-steps-text="' . esc_attr( $caption ) . '" data-finish-tour-creation-text="' . esc_attr( __( 'Finish tour creating the tour',' tour' ) ) . '" title="' . esc_attr( $caption ) . '">' . esc_html( $caption ) . '</a>';
 		return $actions;
-	}
-
-	$tour_steps = json_decode( wp_unslash( $post->post_content ), true );
-	if ( empty( $tour_steps[0]['title'] ) ) {
-		return $actions;
-	}
-
-	$caption = __( 'Add more steps', 'tour' );
-
-	$actions['add-more-steps'] = '<a href="' . get_permalink( $post->ID ) . '" data-tour-id="' . esc_attr( $post->ID ) . '" data-add-more-steps-text="' . esc_attr( $caption ) . '" data-finish-tour-creation-text="' . esc_attr( __( 'Finish tour creating the tour',' tour' ) ) . '" title="' . esc_attr( $caption ) . '">' . esc_html( $caption ) . '</a>';
-	return $actions;
-}
+	}, 10, 2
+);
 
 add_filter(
 	'tour_row_actions',
@@ -243,30 +244,35 @@ add_filter(
 		foreach ( $_POST['tour'][0] as $k => $v ) {
 			$tour[0][$k] = sanitize_text_field( $v );
 		}
+		$data['post_title'] = $tour[0]['title'];
+
+		if ( isset( $_POST['override_json'] ) ) {
+			$data['post_content'] = sanitize_text_field( $_POST['json'] );
+			return $data;
+		}
 
 		if ( isset( $_POST['order'] ) ) {
-		foreach ( $_POST['order'] as $i ) {
-			$step = $_POST['tour'][$i];
+			foreach ( $_POST['order'] as $i ) {
+				$step = $_POST['tour'][$i];
 
-			if ( '' === trim( $step['element'] ) ) {
-				continue;
-			}
-
-			if ( ! isset( $step['popover'] ) ) {
-				continue;
-			}
-
-			$step['element'] = sanitize_text_field( $step['element'] );
-			foreach ( $step['popover'] as $k => $v ) {
-				if ( ! in_array( $k, array( 'title', 'description'))) {
-					unset($step['popover'][$k]);
+				if ( '' === trim( $step['element'] ) ) {
+					continue;
 				}
-			}
-			$tour[] = $step;
-		}
-	}
 
-		$data['post_title']   = $tour[0]['title'];
+				if ( ! isset( $step['popover'] ) ) {
+					continue;
+				}
+
+				$step['element'] = sanitize_text_field( $step['element'] );
+				foreach ( $step['popover'] as $k => $v ) {
+					if ( ! in_array( $k, array( 'title', 'description'))) {
+						unset($step['popover'][$k]);
+					}
+				}
+				$tour[] = $step;
+			}
+		}
+
 		$data['post_content'] = wp_json_encode( $tour );
 		return $data;
 	},
@@ -281,7 +287,9 @@ add_action( 'admin_init', function() {
 		function( $post ) {
 			$tour = json_decode( wp_unslash( $post->post_content ), true );
 			if ( $tour ) {
-				?><pre style="overflow: auto"><?php echo esc_html( json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></pre>
+				$json = json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+				?><textarea name="json" style="font-family: monospace; width: 100%" rows="<?php echo esc_attr( min( 50, 2 + count( explode( PHP_EOL, $json ) ) ) ); ?>"><?php echo esc_html( $json ); ?></textarea><br/>
+				<label><input type="checkbox" name="override_json" value="1"> <?php esc_html_e( 'Override when saving', 'tour' ); ?></label>
 				<?php
 			}
 		},
@@ -579,8 +587,8 @@ add_action('show_user_profile', function() {
 		<tr>
 			<td><?php echo esc_html( $tour_title ); ?>:</td>
 			<td class="tour-progress" data-not-started-text="<?php esc_attr_e( 'Not started.', 'tour' ); ?>"><?php
-		if ( isset( $progress[$tour_title] ) ) {
-			echo esc_html( $progress[$tour_title] );
+		if ( isset( $progress[$tour_id] ) && $progress[$tour_id] ) {
+			echo esc_html( $progress[$tour_id] );
 		} else {
 			esc_html_e( 'Not started.', 'tour' );
 		}
@@ -594,18 +602,18 @@ add_action('show_user_profile', function() {
 	</table>
 	<script>
 document.addEventListener('click', function( event ) {
-	if ( ! event.target.dataset.resetTourName ) {
+	if ( ! event.target.dataset.resetTourId ) {
 		return;
 	}
 
 	event.preventDefault();
 
 	var xhr = new XMLHttpRequest();
-	xhr.open('POST', tour_list_settings.rest_url + 'tour/v1/save-progress');
+	xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
 	xhr.setRequestHeader('Content-Type', 'application/json');
-	xhr.setRequestHeader('X-WP-Nonce', tour_list_settings.nonce);
+	xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
 	xhr.send(JSON.stringify({
-		tour: event.target.dataset.resetTourName,
+		tour: event.target.dataset.resetTourId,
 		step: -1
 	}));
 	var p = event.target.closest('tr').querySelector('.tour-progress');
