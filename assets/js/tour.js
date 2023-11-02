@@ -170,5 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 	loadTour();
+
+	if ( document.querySelector( '.pulse' ) && document.getElementById( 'tour-launcher' ).style.display == 'none' ) {
+		document.getElementById( 'tour-list-trigger' ).style.display = 'block';
+	}
+
 }
 );

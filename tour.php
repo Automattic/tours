@@ -537,33 +537,25 @@ add_action( 'admin_menu', 'tour_add_admin_menu' );
 
 function tour_admin_settings() {}
 
+function output_tour_list() {
+
+	?>
+
+	<div id="tour-list-trigger" style="display: none;">
+		<span id="tour-title">
+		<a href="">Tour List</a>
+		</span>
+
+	</div>
+	<?php
+}
+
 function output_tour_button() {
 	if ( ! current_user_can( 'edit_posts' ) ) {
 		return;
 	}
 	?>
-	<style>
-		#tour-launcher {
-			position: fixed;
-			bottom: 76px;
-			right: 24px;
-			font-size: 13px;
-			border: 1px solid #ccc;
-			border-radius: 10px;
-			background: #fff;
-			padding: .5em;
-			line-height: 1;
-			box-shadow: 0 0 3px #999;
-			z-index: 999999;
-		}
-		#tour-launcher span#tour-title {
-			cursor: pointer;
-			line-height: 1.3em;
-		}
-		#tour-launcher span#tour-title:hover {
-			text-shadow: 0 0 1px #999;
-		}
-	</style>
+
 	<div id="tour-launcher" style="display: none;">
 		<span class="dashicons dashicons-admin-site-alt3"></span>
 		<span id="tour-title"></span>
@@ -576,8 +568,15 @@ function output_tour_button() {
 	<?php
 }
 
-add_action( 'wp_footer', 'output_tour_button' );
-add_action( 'admin_footer', 'output_tour_button' );
+add_action( 'wp_footer', function() {
+	output_tour_button();
+	output_tour_list();
+} );
+
+add_action( 'admin_footer', function() {
+	output_tour_button();
+	output_tour_list();
+} );
 
 add_action('show_user_profile', function() {
 	?>

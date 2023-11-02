@@ -8,3 +8,23 @@
 	height: 12px;
 	margin: -6px;
 }
+#tour-launcher, #tour-list-trigger {
+	position: fixed;
+	bottom: 76px;
+	right: 24px;
+	font-size: 13px;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+	background: #fff;
+	padding: .5em;
+	line-height: 1;
+	box-shadow: 0 0 3px #999;
+	z-index: 999999;
+}
+#tour-launcher span#tour-title {
+	cursor: pointer;
+	line-height: 1.3em;
+}
+#tour-launcher span#tour-title:hover {
+	text-shadow: 0 0 1px #999;
+}
