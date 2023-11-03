@@ -120,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				pulse.classList.add("pulse");
 				pulse.classList.add("tour-" + tourId);
 				pulse.dataset.tourId = tourId;
-				pulse.dataset.tourId = tourId;
 				if ( field.hasChildNodes() ) {
 					wrapper.insertBefore(pulse,wrapper.firstChild);
 				} else {
