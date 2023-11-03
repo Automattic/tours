@@ -545,7 +545,7 @@ function output_tour_list() {
 		<span id="tour-title">
 		<a href="">Tour List</a>
 		</span>
-
+		<ul id="page-tour-list" style="display: none;"></ul>
 	</div>
 	<?php
 }
