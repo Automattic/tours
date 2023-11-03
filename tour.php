@@ -543,7 +543,7 @@ function output_tour_list() {
 
 	<div id="tour-list-trigger" style="display: none;">
 		<span id="tour-title">
-		<a href="">Tour List</a>
+		<a href="" id="tour-list-head">Tour List</a>
 		</span>
 		<ul id="page-tour-list" style="display: none;"></ul>
 	</div>

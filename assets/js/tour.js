@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	
 	document.addEventListener( 'click', function( event ) {
-		if ( ! event.target.matches( '#tour-list-trigger span#tour-title a' ) ) {
+		if ( ! event.target.matches( '#tour-list-head' ) ) {
 			return;
 		}
 		event.preventDefault();

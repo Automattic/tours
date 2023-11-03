@@ -28,3 +28,21 @@
 #tour-launcher span#tour-title:hover {
 	text-shadow: 0 0 1px #999;
 }
+#tour-list-head {
+	color: rgb(57, 57, 199);
+	text-decoration: none;
+	font-weight: bold;
+	cursor: pointer;
+}
+ul#page-tour-list li {
+	border-bottom: rgb(200, 200, 200) thin solid;
+	padding-bottom: 5px;
+	padding-top: 5px;
+	margin: 0;
+}
+ul#page-tour-list li a {
+	text-decoration: none;
+	color: rgb(65, 65, 118);
+	width: 100%;
+	display: block;
+}
