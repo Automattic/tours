@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					let tourListItemLink = document.createElement( 'a' );
 					tourListItemLink.href = '#';
 					tourListItemLink.textContent =  toursOnPage[i].dataset.tourTitle;
+					tourListItemLink.setAttribute( 'data-tour-id',toursOnPage[i].dataset.tourId );
 					tourListItem.appendChild( tourListItemLink );
 
 					tourList.appendChild( tourListItem );
@@ -198,6 +199,16 @@ document.addEventListener('DOMContentLoaded', function() {
 		} else {
 			tourList.style.display = 'none';
 		}
+	} );
+
+	document.addEventListener( 'click', function( event ) {
+		if ( ! event.target.matches( '#page-tour-list li a' ) ) {
+			return;
+		}
+		event.preventDefault();
+		let tourId = event.target.getAttribute( 'data-tour-id' );
+		let pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
+		pulseToClick.click();
 	} );
 }
 );
