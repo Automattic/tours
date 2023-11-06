@@ -534,7 +534,7 @@ function tour_add_admin_menu() {
 }
 
 add_action( 'admin_menu', 'tour_add_admin_menu' );
-add_shortcode('custom_button', 'tour_button_shortcode');
+add_shortcode('tour_button', 'tour_button_shortcode');
 
 function tour_admin_settings() {}
 
