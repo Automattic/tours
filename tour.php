@@ -534,20 +534,14 @@ function tour_add_admin_menu() {
 }
 
 add_action( 'admin_menu', 'tour_add_admin_menu' );
+add_shortcode('custom_button', 'tour_button_shortcode');
 
 function tour_admin_settings() {}
 
-function output_tour_list() {
-
-	?>
-
-	<div id="tour-list-trigger" style="display: none;">
-		<span id="tour-title">
-		<a href="" id="tour-list-head">Tour List</a>
-		</span>
+function tour_button_shortcode() {
+	return '<div class="tour-dropdown"><button id="tour-list-trigger">Toggle List</button>
 		<ul id="page-tour-list" style="display: none;"></ul>
-	</div>
-	<?php
+	</div>';
 }
 
 function output_tour_button() {
@@ -570,12 +564,12 @@ function output_tour_button() {
 
 add_action( 'wp_footer', function() {
 	output_tour_button();
-	output_tour_list();
+	// output_tour_list();
 } );
 
 add_action( 'admin_footer', function() {
 	output_tour_button();
-	output_tour_list();
+	// output_tour_list();
 } );
 
 add_action('show_user_profile', function() {

@@ -34,7 +34,6 @@ function enableTourCreation() {
 	tourId = document.cookie.indexOf('tour=') > -1 ? unescape(document.cookie.split('tour=')[1].split(';')[0]) : '';
 	if ( tourId && document.getElementById('tour-launcher') ) {
 		if ( typeof tour_plugin !== 'undefined' && typeof tour_plugin.tours[ tourId ] !== 'undefined' ) {
-			document.getElementById('tour-list-trigger').style.display = 'none';
 			document.getElementById('tour-launcher').style.display = 'block';
 			document.getElementById('tour-title').textContent = tour_plugin.tours[ tourId ][0].title;
 			document.getElementById('tour-steps').textContent = (tour_plugin.tours[ tourId ].length - 1) + ' step' + (tour_plugin.tours[ tourId ].length > 2 ? 's' : '');

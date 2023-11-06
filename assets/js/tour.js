@@ -170,13 +170,15 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 	loadTour();
-
-	if ( document.querySelector( '.pulse' ) && document.getElementById( 'tour-launcher' ).style.display == 'none' ) {
-		document.getElementById( 'tour-list-trigger' ).style.display = 'block';
-	}
 	
+    document.getElementById( 'tour-list-trigger' ).addEventListener('click', function() {
+		if ( ! document.querySelector( '.pulse' ) ) {
+			return;
+		}
+    });
+
 	document.addEventListener( 'click', function( event ) {
-		if ( ! event.target.matches( '#tour-list-head' ) ) {
+		if ( ! event.target.matches( '#tour-list-trigger' ) ) {
 			return;
 		}
 		event.preventDefault();
