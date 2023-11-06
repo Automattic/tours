@@ -562,15 +562,8 @@ function output_tour_button() {
 	<?php
 }
 
-add_action( 'wp_footer', function() {
-	output_tour_button();
-	// output_tour_list();
-} );
-
-add_action( 'admin_footer', function() {
-	output_tour_button();
-	// output_tour_list();
-} );
+add_action( 'wp_footer', 'output_tour_button' );
+add_action( 'admin_footer', 'output_tour_button' );
 
 add_action('show_user_profile', function() {
 	?>
