@@ -170,12 +170,14 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 	loadTour();
-	
-    document.getElementById( 'tour-list-trigger' ).addEventListener('click', function() {
-		if ( ! document.querySelector( '.pulse' ) ) {
-			return;
-		}
-    });
+	if( document.getElementById( 'tour-list-trigger' ) ) {
+		document.getElementById( 'tour-list-trigger' ).addEventListener('click', function() {
+			if ( ! document.querySelector( '.pulse' ) ) {
+				return;
+			}
+		});
+	}
+   
 
 	document.addEventListener( 'click', function( event ) {
 		if ( ! event.target.matches( '#tour-list-trigger' ) ) {
