@@ -170,16 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 	loadTour();
-	if( document.getElementById( 'tour-list-trigger' ) ) {
-		document.getElementById( 'tour-list-trigger' ).addEventListener('click', function() {
-			if ( ! document.querySelector( '.pulse' ) ) {
-				return;
-			}
-		});
-	}
    
-
-
 	let tourList = document.getElementById( 'page-tour-list' );
 		if ( ! tourList.querySelector( 'li' ) ) {
 			let toursOnPage = ( document.querySelectorAll( '.pulse' ));
