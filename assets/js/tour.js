@@ -179,31 +179,21 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
    
 
-	document.addEventListener( 'click', function( event ) {
-		if ( ! event.target.matches( '#tour-list-trigger' ) ) {
-			return;
-		}
-		event.preventDefault();
-		let tourList = document.getElementById( 'page-tour-list' );
-		if ( tourList.style.display == 'none' ) {
-			if ( ! tourList.querySelector('li') ) {
-				let toursOnPage = ( document.querySelectorAll( '.pulse' ));
-				for ( let i = 0; i < toursOnPage.length; i++ ) {
-					let tourListItem = document.createElement( 'li' );
-					let tourListItemLink = document.createElement( 'a' );
-					tourListItemLink.href = '#';
-					tourListItemLink.textContent =  toursOnPage[i].dataset.tourTitle;
-					tourListItemLink.setAttribute( 'data-tour-id',toursOnPage[i].dataset.tourId );
-					tourListItem.appendChild( tourListItemLink );
 
-					tourList.appendChild( tourListItem );
-				}
+	let tourList = document.getElementById( 'page-tour-list' );
+		if ( ! tourList.querySelector( 'li' ) ) {
+			let toursOnPage = ( document.querySelectorAll( '.pulse' ));
+			for ( let i = 0; i < toursOnPage.length; i++ ) {
+				let tourListItem = document.createElement( 'li' );
+				let tourListItemLink = document.createElement( 'a' );
+				tourListItemLink.href = '#';
+				tourListItemLink.textContent =  toursOnPage[i].dataset.tourTitle;
+				tourListItemLink.setAttribute( 'data-tour-id',toursOnPage[i].dataset.tourId );
+				tourListItem.appendChild( tourListItemLink );
+				tourList.appendChild( tourListItem );
 			}
-			tourList.style.display = 'block';
-		} else {
-			tourList.style.display = 'none';
 		}
-	} );
+			
 
 	document.addEventListener( 'click', function( event ) {
 		if ( ! event.target.matches( '#page-tour-list li a' ) ) {

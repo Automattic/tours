@@ -28,47 +28,14 @@
 #tour-launcher span#tour-title:hover {
 	text-shadow: 0 0 1px #999;
 }
-#tour-list-head {
-	color: rgb(57, 57, 199);
-	text-decoration: none;
-	font-weight: bold;
-	cursor: pointer;
-}
 ul#page-tour-list li {
-	border-bottom: rgb(200, 200, 200) thin solid;
-	padding-bottom: 5px;
-	padding-top: 5px;
-	margin: 0;
 	list-style-type: none;
 }
 ul#page-tour-list li a {
 	text-decoration: none;
-	color: rgb(65, 65, 118);
 	width: 100%;
 	display: block;
 }
-
-#tour-list-trigger {
-	font-size: 13px;
-	border: 1px solid #ccc;
-	border-radius: 10px;
-	background: #fff;
-	padding: .5em;
-	line-height: 1;
-	box-shadow: 0 0 3px #999;
-}
 #page-tour-list {
 	font-size: .8em;
-	position: absolute;
-    bottom: 40px;
-    left: 0;
-    width: 100%;
-    background: #fff;
-    border-top: 1px solid #ccc;
-    padding: 10px;
-    box-shadow: 0px -2px 5px 0px rgba(0, 0, 0, 0.1);
-}
-.tour-dropdown {
-    position: relative;
-    display: inline-block;
 }

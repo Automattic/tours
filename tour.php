@@ -539,9 +539,7 @@ add_shortcode('tour_button', 'tour_button_shortcode');
 function tour_admin_settings() {}
 
 function tour_button_shortcode() {
-	return '<div class="tour-dropdown"><button id="tour-list-trigger">Toggle List</button>
-		<ul id="page-tour-list" style="display: none;"></ul>
-	</div>';
+	return '<ul id="page-tour-list"></ul>';
 }
 
 function output_tour_button() {
