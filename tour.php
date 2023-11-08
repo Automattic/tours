@@ -14,7 +14,9 @@ defined( 'ABSPATH' ) || die();
 
 function tour_enqueue_scripts() {
 	static $once = false;
-	if ( $once ) {
+	$tours = apply_filters( 'tour_list', array() );
+
+	if ( $once || empty( $tours ) ) {
 		return;
 	}
 	$once = true;
@@ -29,7 +31,7 @@ function tour_enqueue_scripts() {
 	wp_localize_script(
 		'tour',
 		'tour_plugin', array(
-			'tours'    => apply_filters( 'tour_list', array() ),
+			'tours'    => $tours,
 			'nonce'    => wp_create_nonce( 'wp_rest' ),
 			'rest_url' => rest_url(),
 			'progress' => get_user_option( 'tour-progress', get_current_user_id() ),
