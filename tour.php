@@ -16,10 +16,14 @@ function tour_enqueue_scripts() {
 	static $once = false;
 	$tours = apply_filters( 'tour_list', array() );
 
-	if ( $once || empty( $tours ) ) {
+	if ( $once ) {
 		return;
 	}
 	$once = true;
+
+	if ( empty( $tours ) ) {
+		return;
+	}
 
 	wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
 	wp_register_style( 'tour-css', plugins_url( 'assets/css/style.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/style.css' ) );
