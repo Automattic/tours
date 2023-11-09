@@ -637,7 +637,7 @@ function tour_block_tour_block_block_init() {
 				return '<p>' . esc_html__('There are no tours available.', 'tour-block') . '</p>';
 			}
 
-			$list = '<p>' . esc_attr__('These are the tours available.', 'tour-block') . '</p>';
+			$list = '<p>' . esc_attr__('These are the available tours:', 'tour-block') . '</p>';
 			$list .= '<ul class="tour-block">';
 			foreach ($posts as $post) {
 				$list .= '<li><span class="pulse" data-tour-id="' . $post->ID . '">' . $post->post_title . '</span></li>';
