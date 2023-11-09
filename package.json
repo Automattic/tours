@@ -6,7 +6,7 @@
 	"license": "GPL-2.0-or-later",
 	"main": "assets/blocks/build/index.js",
 	"scripts": {
-		"build": "wp-scripts build assets/blocks/src --output-path=assets/blocks/build/",
+		"build": "wp-scripts build --webpack-src-dir=assets/blocks/src --output-path=assets/blocks/build",
 		"format": "wp-scripts format",
 		"lint:css": "wp-scripts lint-style",
 		"lint:js": "wp-scripts lint-js",

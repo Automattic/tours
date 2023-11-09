@@ -6,7 +6,7 @@
   "title": "Tour Block",
   "category": "widgets",
   "icon": "testimonial",
-  "description": "Example block scaffolded with Create Block tool.",
+  "description": "Show a list of available tours.",
   "example": {},
   "supports": {
     "html": false
