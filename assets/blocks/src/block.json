@@ -3,7 +3,7 @@
 	"apiVersion": 3,
 	"name": "tour-block/tour-block",
 	"version": "0.1.0",
-	"title": "Tour Block",
+	"title": "Available Tours",
 	"category": "widgets",
 	"icon": "testimonial",
 	"description": "Show a list of available tours.",
