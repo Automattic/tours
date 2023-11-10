@@ -640,7 +640,7 @@ function tour_block_tour_block_block_init() {
 			$list = '<p>' . esc_attr__('These are the available tours:', 'tour-block') . '</p>';
 			$list .= '<ul class="tour-block">';
 			foreach ($posts as $post) {
-				$list .= '<li><span class="pulse" data-tour-id="' . $post->ID . '">' . $post->post_title . '</span></li>';
+				$list .= '<li><span class="pulse" data-tour-id="' . esc_attr( $post->ID ) . '">' . esc_html( $post->post_title ) . '</span></li>';
 			}
 			$list .= '</ul>';
 
