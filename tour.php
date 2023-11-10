@@ -516,10 +516,9 @@ add_filter(
 			if ( ! $tour_steps ) {
 				$tour_steps = array(
 					array(
-						'id' => $_tour->ID,
 						'title' => $_tour->post_title,
 						'color' => '#3939c7',
-					)
+					),
 				);
 			}
 			$tour[ $_tour->ID ] = $tour_steps;
@@ -541,8 +540,9 @@ function tour_admin_settings() {}
 
 function tour_button_shortcode() {
 	$tour_list = '<ul id="page-tour-list">';
-    foreach ( apply_filters( 'tour_list', array() ) as $tour ) {
-		$tour_list .= '<li><a href="#" data-tour-id="' . $tour[0]['id'] . '">' . $tour[0]['title'] . '</li>';
+    foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
+
+		$tour_list .= '<li><a href="#" data-tour-id="' . $tour_id . '">' . $tour[0]['title'] . '</li>';
     }
     $tour_list .= '</ul>';
 

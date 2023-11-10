@@ -171,20 +171,29 @@ document.addEventListener('DOMContentLoaded', function() {
 	};
 	loadTour();
    
-	let tourList = document.getElementById( 'page-tour-list' );
-		if ( ! tourList.querySelector( 'li' ) ) {
-			let toursOnPage = ( document.querySelectorAll( '.pulse' ));
-			for ( let i = 0; i < toursOnPage.length; i++ ) {
-				let tourListItem = document.createElement( 'li' );
-				let tourListItemLink = document.createElement( 'a' );
-				tourListItemLink.href = '#';
-				tourListItemLink.textContent =  toursOnPage[i].dataset.tourTitle;
-				tourListItemLink.setAttribute( 'data-tour-id',toursOnPage[i].dataset.tourId );
-				tourListItem.appendChild( tourListItemLink );
-				tourList.appendChild( tourListItem );
+	let tourListItems = document.querySelectorAll( '#page-tour-list li a' );
+
+		if ( tourListItems ) {
+			let toursOnPage = ( document.querySelectorAll( '.pulse' ) );
+			let toursOnPageArray = Array.from( toursOnPage );
+
+			let tourIdsOnPage = toursOnPageArray.map( function(item){
+				return item.dataset.tourId;
+			} );
+
+			for ( let i = 0; i < tourListItems.length; i++ ) {
+				if (  ! tourIdsOnPage.includes( tourListItems[i].dataset.tourId ) ) {
+					removeTourListItem( tourListItems[i].dataset.tourId );
+				}
 			}
 		}
-			
+
+	function removeTourListItem( tourId ) {
+		let toRemove = document.querySelector( 'a[data-tour-id="' + tourId + '"]' );
+		if ( toRemove ) {
+			toRemove.remove();
+		}
+	}
 
 	document.addEventListener( 'click', function( event ) {
 		if ( ! event.target.matches( '#page-tour-list li a' ) ) {
