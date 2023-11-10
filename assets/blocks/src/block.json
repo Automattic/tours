@@ -1,7 +1,7 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
-	"name": "tour-block/tour-block",
+	"name": "tour/available-tour",
 	"version": "0.1.0",
 	"title": "Available Tours",
 	"category": "widgets",
