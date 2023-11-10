@@ -34,7 +34,7 @@ export default function Edit() {
 	return (
 		<div { ...useBlockProps() }>
 			<ServerSideRender
-				block="tour-block/tour-block"
+				block="tour/available-tours"
 			/>
 		</div>
 	);
