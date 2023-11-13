@@ -39,7 +39,7 @@ export default function Edit({ attributes, setAttributes }) {
 				<PanelBody>
 					<TextControl
 						label={ __( 'No Tours Text', 'tour' ) }
-						value={ attributes.noToursText || __( 'There are no tours available.', 'tour' ) }
+						value={ attributes.noToursText }
 						onChange={( newValue ) => setAttributes({ noToursText: newValue })}
 					/>
 				</PanelBody>

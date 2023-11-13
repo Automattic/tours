@@ -9,7 +9,8 @@
 	"description": "Show a list of available tours.",
 	"attributes": {
 		"noToursText": {
-			"type": "string"
+			"type": "string",
+			"default": "There are no tours available."
 		}
 	},
 	"example": {

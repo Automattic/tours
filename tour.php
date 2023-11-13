@@ -645,8 +645,7 @@ document.addEventListener('click', function( event ) {
 function show_tour_list( $attributes ) {
 	$tours = apply_filters( 'tour_list', array() );
 	if ( empty( $tours ) ) {
-		$no_tours_text = isset( $attributes['noToursText'] ) ? $attributes['noToursText'] : __( 'There are no tours available.', 'tour' );
-		return '<p>' . esc_html( $no_tours_text ) . '</p>';
+		return '<p>' . esc_html( $attributes['noToursText'] ) . '</p>';
 	}
 	$tour_list = '<ul id="page-tour-list">';
 	foreach ( $tours as $tour_id => $tour ) {
@@ -670,7 +669,7 @@ function tour_available_tours_init() {
 		'attributes'  => array(
 			'noToursText' => array(
 				'type'    => 'string',
-				'default' => false,
+				'default' => __( 'There are no tours available.', 'tour' ),
 			),
 		),
 		'render_callback' => 'show_tour_list',
