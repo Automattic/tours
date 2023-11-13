@@ -380,7 +380,20 @@ add_action( 'edit_form_after_editor', function( $post ) {
 						<tr>
 							<th scope="row"><label for="tour-step-description-<?php echo esc_attr( $k ); ?>"><?php esc_html_e( 'Description', 'tour' ); ?></label></th>
 							<td>
-								<textarea name="tour[<?php echo esc_attr( $k ); ?>][popover][description]" rows="7" id="tour-step-description-<?php echo esc_attr( $k ); ?>" class="large-text"><?php echo esc_html( $step['popover']['description'] ); ?></textarea>
+								<?php
+								wp_editor( $step['popover']['description'], 'tour-step-description-' . $k, array(
+									'textarea_name' => 'tour[' . $k . '][popover][description]',
+									'tinymce' => true,
+									'quicktags' => false,
+									'editor_height' => 300,
+									'media_buttons' => true,
+									'teeny' => true,
+									'editor_css' => '',
+									'textarea_rows' => 7,
+									'drag_drop_upload' => true,
+									'wpautop' => true
+								));
+								?>
 							</td>
 						</tr>
 						<tr>
