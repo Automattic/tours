@@ -629,7 +629,7 @@ function show_tour_list() {
 	$tour_list = '<ul id="page-tour-list">';
     foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
 
-		$tour_list .= '<li><a href="#" data-tour-id="' . $tour_id . '">' . $tour[0]['title'] . '</li>';
+		$tour_list .= '<li><a href="#" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</li>';
     }
     $tour_list .= '</ul>';
 
