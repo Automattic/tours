@@ -617,23 +617,19 @@ document.addEventListener('click', function( event ) {
 	<?php
 } );
 
+/**
+ * Outputs the tour list.
+ *
+ * @return string
+ */
 function show_tour_list() {
-	$posts = get_posts( array(
-		'post_type' => 'tour',
-		'order'     => 'ASC',
-	));
-
-	if ( empty( $posts ) ) {
-		return '<p>' . esc_html__( 'There are no tours available.', 'tour-block' ) . '</p>';
+	$tour_list = '<ul id="page-tour-list">';
+	foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
+		$tour_list .= '<li><span class="pulse" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
 	}
+	$tour_list .= '</ul>';
 
-	$list = '<ul class="tour-block">';
-	foreach ( $posts as $post ) {
-		$list .= '<li><span class="pulse" data-tour-id="' . esc_attr( $post->ID ) . '">' . esc_html( $post->post_title ) . '</span></li>';
-	}
-	$list .= '</ul>';
-
-	return $list;
+	return $tour_list;
 }
 
 /**
