@@ -623,6 +623,9 @@ document.addEventListener('click', function( event ) {
  * @return string
  */
 function show_tour_list() {
+	if ( empty( apply_filters( 'tour_list', array() ) ) ) {
+		return '<p>' . esc_html__('There are no tours available.', 'tour') . '</p>';
+	}
 	$tour_list = '<ul id="page-tour-list">';
 	foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
 		$tour_list .= '<li><span class="pulse" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
