@@ -234,6 +234,26 @@ add_filter(
 	}, 10, 2
 );
 
+
+add_filter('get_the_excerpt',
+	function ( $excerpt, $post ) {
+		if ( get_post_type( $post ) === 'tour' ) {
+			$steps = json_decode( $post->post_content );
+			if ( $steps ) {
+				$c = ( count( $steps ) - 1 );
+				return sprintf(
+					// translators: %d is the number of steps
+					_n( '%d step', '%d steps', $c, 'tour' ),
+					$c );
+			}
+			return '';
+		}
+		return $excerpt;
+	},
+	10,
+	2
+);
+
 add_filter(
 	'wp_insert_post_data',
 	function ( $data, $postarr ) {
