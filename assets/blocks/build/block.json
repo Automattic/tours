@@ -1,9 +1,9 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
-  "name": "tour-block/tour-block",
+  "name": "tour/available-tours",
   "version": "0.1.0",
-  "title": "Tour Block",
+  "title": "Available Tours",
   "category": "widgets",
   "icon": "testimonial",
   "description": "Show a list of available tours.",
@@ -11,7 +11,7 @@
   "supports": {
     "html": false
   },
-  "textdomain": "tour-block",
+  "textdomain": "tour",
   "editorScript": "file:./index.js",
   "editorStyle": "file:./index.css",
   "style": "file:./style-index.css",
