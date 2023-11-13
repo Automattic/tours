@@ -14,12 +14,12 @@ defined( 'ABSPATH' ) || die();
 
 function tour_enqueue_scripts() {
 	static $once = false;
-	$tours = apply_filters( 'tour_list', array() );
 
 	if ( $once ) {
 		return;
 	}
 	$once = true;
+	$tours = apply_filters( 'tour_list', array() );
 
 	if ( empty( $tours ) ) {
 		return;
