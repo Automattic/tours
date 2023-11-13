@@ -11,7 +11,7 @@ import { __ } from '@wordpress/i18n';
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
-import { useBlockProps } from '@wordpress/block-editor';
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
@@ -21,6 +21,7 @@ import { useBlockProps } from '@wordpress/block-editor';
  */
 import './editor.scss';
 import ServerSideRender from '@wordpress/server-side-render';
+import { PanelBody, TextControl } from '@wordpress/components';
 
 /**
  * The edit function describes the structure of your block in the context of the
@@ -30,12 +31,23 @@ import ServerSideRender from '@wordpress/server-side-render';
  *
  * @return {Element} Element to render.
  */
-export default function Edit() {
+export default function Edit({ attributes, setAttributes }) {
+
 	return (
 		<div { ...useBlockProps() }>
-			<ServerSideRender
-				block="tour/available-tours"
-			/>
+			<InspectorControls key="settings">
+				<PanelBody>
+					<TextControl
+						label={ __( 'No Tours Text', 'tour' ) }
+						value={ attributes.noToursText || __( 'There are no tours available.', 'tour' ) }
+						onChange={( newValue ) => setAttributes({ noToursText: newValue })}
+					/>
+				</PanelBody>
+			</InspectorControls>
+				<ServerSideRender
+					block="tour/available-tours"
+					attributes={ attributes }
+				/>
 		</div>
-	);
-}
+		);
+	}

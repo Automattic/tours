@@ -642,12 +642,14 @@ document.addEventListener('click', function( event ) {
  *
  * @return string
  */
-function show_tour_list() {
-	if ( empty( apply_filters( 'tour_list', array() ) ) ) {
-		return '<p>' . esc_html__('There are no tours available.', 'tour') . '</p>';
+function show_tour_list( $attributes ) {
+	$tours = apply_filters( 'tour_list', array() );
+	if ( empty( $tours ) ) {
+		$no_tours_text = isset( $attributes['noToursText'] ) ? $attributes['noToursText'] : __( 'There are no tours available.', 'tour' );
+		return '<p>' . esc_html( $no_tours_text ) . '</p>';
 	}
 	$tour_list = '<ul id="page-tour-list">';
-	foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
+	foreach ( $tours as $tour_id => $tour ) {
 		$tour_list .= '<li><span data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
 	}
 	$tour_list .= '</ul>';
@@ -664,6 +666,13 @@ function show_tour_list() {
  */
 function tour_available_tours_init() {
 	register_block_type( __DIR__ . '/assets/blocks/build', array(
+		'api_version' => 3,
+		'attributes'  => array(
+			'noToursText' => array(
+				'type'    => 'string',
+				'default' => false,
+			),
+		),
 		'render_callback' => 'show_tour_list',
 	) );
 }
