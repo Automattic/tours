@@ -636,3 +636,35 @@ document.addEventListener('click', function( event ) {
 	</script>
 	<?php
 } );
+
+/**
+ * Outputs the tour list.
+ *
+ * @return string
+ */
+function show_tour_list() {
+	if ( empty( apply_filters( 'tour_list', array() ) ) ) {
+		return '<p>' . esc_html__('There are no tours available.', 'tour') . '</p>';
+	}
+	$tour_list = '<ul id="page-tour-list">';
+	foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
+		$tour_list .= '<li><span data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
+	}
+	$tour_list .= '</ul>';
+
+	return $tour_list;
+}
+
+/**
+ * Registers the block using the metadata loaded from the `block.json` file.
+ * Behind the scenes, it registers also all assets so they can be enqueued
+ * through the block editor in the corresponding context.
+ *
+ * @see https://developer.wordpress.org/reference/functions/register_block_type/
+ */
+function tour_available_tours_init() {
+	register_block_type( __DIR__ . '/assets/blocks/build', array(
+		'render_callback' => 'show_tour_list',
+	) );
+}
+add_action( 'init', 'tour_available_tours_init' );
