@@ -220,7 +220,7 @@ add_filter(
 			return $actions;
 		}
 
-		$tour_steps = json_decode( wp_unslash( $post->post_content ), true );
+		$tour_steps = json_decode( $post->post_content, true );
 		if ( empty( $tour_steps[0]['title'] ) ) {
 			return $actions;
 		}
@@ -281,7 +281,7 @@ add_filter(
 		);
 
 		if ( isset( $_POST['override_json'] ) ) {
-			$data['post_content'] = sanitize_text_field( $_POST['json'] );
+			$data['post_content'] = $_POST['json'];
 			return $data;
 		}
 
@@ -299,15 +299,20 @@ add_filter(
 
 				$step['element'] = sanitize_text_field( $step['element'] );
 				foreach ( $step['popover'] as $k => $v ) {
-					if ( ! in_array( $k, array( 'title', 'description'))) {
-						unset($step['popover'][$k]);
+					if ( ! in_array( $k, array( 'title', 'description' ) ) ) {
+						unset( $step['popover'][$k] );
+					} else {
+						$step['popover'][$k] = preg_replace( '/[\r\n\t ]+/', ' ', $step['popover'][$k] );
+						$step['popover'][$k] = wp_kses_post( $step['popover'][$k] );
 					}
 				}
 				$tour[] = $step;
 			}
+
 		}
 
-		$data['post_content'] = wp_json_encode( $tour );
+		$data['post_content'] = wp_json_encode( wp_slash( $tour ) );
+
 		return $data;
 	},
 	10,
@@ -323,11 +328,11 @@ add_action( 'admin_init', function() {
 		'tour-json',
 		'JSON',
 		function( $post ) {
-			$tour = json_decode( wp_unslash( $post->post_content ), true );
+			$tour = json_decode( $post->post_content, true );
 			if ( $tour ) {
 				$json = json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
-				?><textarea name="json" style="font-family: monospace; width: 100%" rows="<?php echo esc_attr( min( 50, 2 + count( explode( PHP_EOL, $json ) ) ) ); ?>"><?php echo esc_html( $json ); ?></textarea><br/>
-				<label><input type="checkbox" name="override_json" value="1"> <?php esc_html_e( 'Override when saving', 'tour' ); ?></label>
+				?><textarea name="json" style="font-family: monospace; width: 100%" rows="<?php echo esc_attr( min( 50, 2 + count( explode( PHP_EOL, $json ) ) ) ); ?>" onchange="void(document.getElementById('override_json').checked=true)"><?php echo esc_html( $json ); ?></textarea><br/>
+				<label><input type="checkbox" id="override_json" name="override_json" value="1"> <?php esc_html_e( 'Override when saving', 'tour' ); ?></label>
 				<?php
 			}
 		},
@@ -341,8 +346,9 @@ add_action( 'edit_form_after_editor', function( $post ) {
 	if ( 'tour' !== get_post_type( $post ) ) {
 		return;
 	}
+	wp_tinymce_inline_scripts();
 
-	$tour = json_decode( wp_unslash( $post->post_content ), true );
+	$tour = wp_unslash( json_decode( $post->post_content, true ) );
 	if ( ! $tour ) {
 		$color = '#3939c7';
 		$tour = array();
@@ -384,7 +390,7 @@ add_action( 'edit_form_after_editor', function( $post ) {
 								wp_editor( $step['popover']['description'], 'tour-step-description-' . $k, array(
 									'textarea_name' => 'tour[' . $k . '][popover][description]',
 									'tinymce' => true,
-									'quicktags' => false,
+									'quicktags' => true,
 									'editor_height' => 300,
 									'media_buttons' => true,
 									'teeny' => true,
@@ -531,7 +537,7 @@ add_filter(
 		$tours = get_posts( $args );
 
 		foreach ( $tours as $_tour ) {
-			$tour_steps         = json_decode( wp_unslash( $_tour->post_content ), true );
+			$tour_steps         = json_decode( $_tour->post_content, true );
 			if ( ! $tour_steps ) {
 				$tour_steps = array(
 					array(
