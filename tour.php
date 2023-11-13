@@ -628,7 +628,7 @@ function show_tour_list() {
 	}
 	$tour_list = '<ul id="page-tour-list">';
 	foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
-		$tour_list .= '<li><span class="pulse" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
+		$tour_list .= '<li><span data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
 	}
 	$tour_list .= '</ul>';
 
