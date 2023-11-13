@@ -624,7 +624,7 @@ document.addEventListener('click', function( event ) {
  *
  * @see https://developer.wordpress.org/reference/functions/register_block_type/
  */
-function tour_block_tour_block_block_init() {
+function tour_available_tours_init() {
 	register_block_type( __DIR__ . '/assets/blocks/build', array(
 		'render_callback' => function() {
 
@@ -648,4 +648,4 @@ function tour_block_tour_block_block_init() {
 		}
 	) );
 }
-add_action( 'init', 'tour_block_tour_block_block_init' );
+add_action( 'init', 'tour_available_tours_init' );
