@@ -534,20 +534,9 @@ function tour_add_admin_menu() {
 }
 
 add_action( 'admin_menu', 'tour_add_admin_menu' );
-add_shortcode('tour_button', 'tour_button_shortcode');
+add_shortcode('tour_button', 'show_tour_list');
 
 function tour_admin_settings() {}
-
-function tour_button_shortcode() {
-	$tour_list = '<ul id="page-tour-list">';
-    foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
-
-		$tour_list .= '<li><a href="#" data-tour-id="' . $tour_id . '">' . $tour[0]['title'] . '</li>';
-    }
-    $tour_list .= '</ul>';
-
-	return $tour_list;
-}
 
 function output_tour_button() {
 	if ( ! current_user_can( 'edit_posts' ) ) {
@@ -638,10 +627,11 @@ function show_tour_list() {
 		return '<p>' . esc_html__('There are no tours available.', 'tour') . '</p>';
 	}
 	$tour_list = '<ul id="page-tour-list">';
-	foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
-		$tour_list .= '<li><span data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
-	}
-	$tour_list .= '</ul>';
+    foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
+
+		$tour_list .= '<li><a href="#" data-tour-id="' . $tour_id . '">' . $tour[0]['title'] . '</li>';
+    }
+    $tour_list .= '</ul>';
 
 	return $tour_list;
 }
