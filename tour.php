@@ -617,6 +617,26 @@ document.addEventListener('click', function( event ) {
 	<?php
 } );
 
+function show_tour_list() {
+	$posts = get_posts( array(
+		'post_type' => 'tour',
+		'order'     => 'ASC',
+	));
+
+	if ( empty( $posts ) ) {
+		return '<p>' . esc_html__( 'There are no tours available.', 'tour-block' ) . '</p>';
+	}
+
+	$list = '<p>' . esc_attr__( 'These are the available tours:', 'tour-block' ) . '</p>';
+	$list .= '<ul class="tour-block">';
+	foreach ( $posts as $post ) {
+		$list .= '<li><span class="pulse" data-tour-id="' . esc_attr( $post->ID ) . '">' . esc_html( $post->post_title ) . '</span></li>';
+	}
+	$list .= '</ul>';
+
+	return $list;
+}
+
 /**
  * Registers the block using the metadata loaded from the `block.json` file.
  * Behind the scenes, it registers also all assets so they can be enqueued
@@ -626,26 +646,7 @@ document.addEventListener('click', function( event ) {
  */
 function tour_available_tours_init() {
 	register_block_type( __DIR__ . '/assets/blocks/build', array(
-		'render_callback' => function() {
-
-			$posts = get_posts(array(
-				'post_type' => 'tour',
-				'order'     => 'ASC',
-			));
-
-			if ( empty( $posts ) ) {
-				return '<p>' . esc_html__('There are no tours available.', 'tour-block') . '</p>';
-			}
-
-			$list = '<p>' . esc_attr__('These are the available tours:', 'tour-block') . '</p>';
-			$list .= '<ul class="tour-block">';
-			foreach ($posts as $post) {
-				$list .= '<li><span class="pulse" data-tour-id="' . esc_attr( $post->ID ) . '">' . esc_html( $post->post_title ) . '</span></li>';
-			}
-			$list .= '</ul>';
-
-			return $list;
-		}
+		'render_callback' => 'show_tour_list',
 	) );
 }
 add_action( 'init', 'tour_available_tours_init' );
