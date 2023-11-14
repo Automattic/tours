@@ -687,3 +687,30 @@ function tour_available_tours_init() {
 	) );
 }
 add_action( 'init', 'tour_available_tours_init' );
+
+function add_tour_item_to_masterbar() {
+    global $wp_admin_bar;
+	if ( empty( apply_filters( 'tour_list', array() ) ) ) {
+		return '<p>' . esc_html__('There are no tours available.', 'tour') . '</p>';
+	}
+	$tours = apply_filters( 'tour_list', array() );
+	$wp_admin_bar->add_menu(
+		array(
+			'id'    => 'tour-list',
+			'title' => esc_html__('Available Tours', 'tour'),
+			'href'  => '#',
+		)
+	);
+
+	foreach ( $tours as $tour_id => $tour ) {
+		$wp_admin_bar->add_menu(
+			array(
+				'parent' => 'tour-list',
+				'id'     => 'tour-' . esc_html( $tour_id ),
+				'title'  => esc_html( $tour[0]['title'] ),
+				'href'   => '#',
+			)
+		);
+	}
+}
+add_action('wp_before_admin_bar_render', 'add_tour_item_to_masterbar');
