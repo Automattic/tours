@@ -43,7 +43,7 @@ function tour_enqueue_scripts() {
 	);
 
 	if ( current_user_can( 'edit_posts' ) ) {
-		wp_register_script( 'tour-admin', plugins_url( 'assets/js/tour-admin.js', __FILE__ ), array(  'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-admin.js' ), true );
+		wp_register_script( 'tour-admin', plugins_url( 'assets/js/tour-admin.js', __FILE__ ), array(  'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-admin.js' ), array( 'in_footer' => true ) );
 		wp_enqueue_script( 'tour-admin' );
 	}
 }
@@ -709,6 +709,9 @@ function add_tour_item_to_masterbar() {
 				'id'     => 'tour-' . esc_html( $tour_id ),
 				'title'  => esc_html( $tour[0]['title'] ),
 				'href'   => '#',
+				'meta'  => array(
+					'class' => 'admin-bar-tour-item',
+				),
 			)
 		);
 	}
