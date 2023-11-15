@@ -170,33 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 	loadTour();
-	show_available_tours_on_page();
-
-	function show_available_tours_on_page() {
-		let tourListItems = document.querySelectorAll( '#page-tour-list li a' );
-
-		if ( tourListItems ) {
-			let toursOnPage = ( document.querySelectorAll( '.pulse' ) );
-			let toursOnPageArray = Array.from( toursOnPage );
-
-			let tourIdsOnPage = toursOnPageArray.map( function(item){
-				return item.dataset.tourId;
-			} );
-
-			for ( let i = 0; i < tourListItems.length; i++ ) {
-				if (  ! tourIdsOnPage.includes( tourListItems[i].dataset.tourId ) ) {
-					removeTourListItem( tourListItems[i].dataset.tourId );
-				}
-			}
-		}
-	}
-
-	function removeTourListItem( tourId ) {
-		let toRemove = document.querySelector( 'a[data-tour-id="' + tourId + '"]' );
-		if ( toRemove ) {
-			toRemove.remove();
-		}
-	}
 
 	document.addEventListener( 'click', function( event ) {
 		if ( ! event.target.matches( '#page-tour-list li a' ) ) {
@@ -205,7 +178,32 @@ document.addEventListener('DOMContentLoaded', function() {
 		event.preventDefault();
 		let tourId = event.target.getAttribute( 'data-tour-id' );
 		let pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
-		pulseToClick.click();
+		if ( pulseToClick ){
+				pulseToClick.click();
+		} else {
+			resetTour( tourId );
+			pulseToClick.click();
+		}
 	} );
+	function resetTour(tourId){
+		if ( ! tourId ) {
+			return;
+		}
+	
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
+		xhr.setRequestHeader('Content-Type', 'application/json');
+		xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
+		xhr.onload = function () {
+			if ( xhr.status >= 200 && xhr.status < 300 ) {
+				location.reload();
+			}
+		};
+		xhr.send( JSON.stringify({
+			tour: tourId,
+			step: -1
+		}));
+	}
 }
 );
+console.log( document.querySelectorAll( '.pulse' ));
