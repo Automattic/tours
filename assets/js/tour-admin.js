@@ -206,3 +206,30 @@ document.addEventListener('keyup', function(event) {
 document.addEventListener('mouseover', tourStepHighlighter);
 document.addEventListener('mouseout', clearHighlight);
 document.addEventListener('click', tourStepSelector);
+
+document.addEventListener('DOMContentLoaded', function() {
+	
+	function show_available_tours_on_page() {
+		let tourListItems = document.querySelectorAll( 'li.admin-bar-tour-item' );
+		let toursOnPage = document.querySelectorAll( '.pulse' );
+
+			if ( ! tourListItems || ! toursOnPage ) {
+				return;
+			}
+			let toursOnPageArray = Array.from( toursOnPage );
+
+			let tourIdsOnPage = toursOnPageArray.map( function(item){
+				return item.dataset.tourId;
+			} );
+			for ( let i = 0; i < tourListItems.length; i++ ) {
+				let stringSplit = tourListItems[i].id.split('-');
+				let tourId = stringSplit[stringSplit.length - 1];
+				
+				if (  ! tourIdsOnPage.includes( tourId ) ) {
+					document.querySelector('#wp-admin-bar-tour-' + tourId).remove();
+				}
+			}
+	}
+
+	show_available_tours_on_page();
+});
