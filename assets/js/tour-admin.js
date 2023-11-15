@@ -232,4 +232,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	show_available_tours_on_page();
+
+	document.addEventListener( 'click', function( event ) {
+		if ( ! event.target.matches( 'li.admin-bar-tour-item a' ) ) {
+			return;
+		}
+		let listIdAttr = event.target.closest('li.admin-bar-tour-item');
+		let tourId = listIdAttr.id.split('-')[4];
+		document.querySelector( '.pulse.tour-' + tourId ).click();
+		
+	} );
 });
