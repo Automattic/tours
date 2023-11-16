@@ -170,7 +170,28 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 	loadTour();
+	show_available_tours_on_page();
 
+	function show_available_tours_on_page() {
+		let tourListItems = document.querySelectorAll( '#page-tour-list li a' );
+
+		if ( tourListItems ) {
+			for ( let i = 0; i < tourListItems.length; i++ ) {
+				let _tourId = tourListItems[i].dataset.tourId;
+				let tourIsPresent = document.querySelector(tour_plugin.tours[ _tourId ][1].element) ? true : false;
+				if (  ! tourIsPresent ) {
+					removeTourListItem( tourListItems[i].dataset.tourId );
+				}
+			}
+		}
+	}
+
+	function removeTourListItem( tourId ) {
+		let toRemove = document.querySelector( 'a[data-tour-id="' + tourId + '"]' );
+		if ( toRemove ) {
+			toRemove.remove();
+		}
+	}
 	document.addEventListener( 'click', function( event ) {
 		if ( ! event.target.matches( '#page-tour-list li a' ) ) {
 			return;
