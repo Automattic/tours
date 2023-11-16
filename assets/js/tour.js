@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				pulse.classList.add("pulse");
 				pulse.classList.add("tour-" + tourId);
 				pulse.dataset.tourId = tourId;
-				pulse.dataset.tourId = tourId;
+				pulse.dataset.tourTitle = tour_plugin.tours[ tourId ][ 0 ].title;
 				if ( field.hasChildNodes() ) {
 					wrapper.insertBefore(pulse,wrapper.firstChild);
 				} else {
@@ -170,5 +170,56 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 	loadTour();
+	show_available_tours_on_page();
+
+	function show_available_tours_on_page() {
+		let tourListItems = document.querySelectorAll( '#page-tour-list li a' );
+
+		if ( tourListItems ) {
+			for ( let i = 0; i < tourListItems.length; i++ ) {
+				let _tourId = tourListItems[i].dataset.tourId;
+				let tourIsPresent = document.querySelector(tour_plugin.tours[ _tourId ][1].element) ? true : false;
+				if (  ! tourIsPresent ) {
+					removeTourListItem( tourListItems[i].dataset.tourId );
+				}
+			}
+		}
+	}
+
+	function removeTourListItem( tourId ) {
+		let toRemove = document.querySelector( 'a[data-tour-id="' + tourId + '"]' );
+		if ( toRemove ) {
+			toRemove.remove();
+		}
+	}
+	document.addEventListener( 'click', function( event ) {
+		if ( ! event.target.matches( '#page-tour-list li a' ) ) {
+			return;
+		}
+		event.preventDefault();
+		let tourId = event.target.getAttribute( 'data-tour-id' );
+		let pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
+		if ( pulseToClick ){
+				pulseToClick.click();
+		} else {
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
+			xhr.onload = function () {
+				if ( xhr.status >= 200 && xhr.status < 300 ) {
+					delete tour_plugin.progress[ tourId ];
+					loadTour();
+					pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
+					pulseToClick.click();
+
+				}
+			};
+			xhr.send( JSON.stringify({
+				tour: tourId,
+				step: -1
+			}));
+		}
+	} );
 }
 );

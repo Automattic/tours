@@ -518,7 +518,7 @@ add_filter(
 					array(
 						'title' => $_tour->post_title,
 						'color' => '#3939c7',
-					)
+					),
 				);
 			}
 			$tour[ $_tour->ID ] = $tour_steps;
@@ -534,6 +534,7 @@ function tour_add_admin_menu() {
 }
 
 add_action( 'admin_menu', 'tour_add_admin_menu' );
+add_shortcode('tour_button', 'show_tour_list');
 
 function tour_admin_settings() {}
 
@@ -542,28 +543,7 @@ function output_tour_button() {
 		return;
 	}
 	?>
-	<style>
-		#tour-launcher {
-			position: fixed;
-			bottom: 76px;
-			right: 24px;
-			font-size: 13px;
-			border: 1px solid #ccc;
-			border-radius: 10px;
-			background: #fff;
-			padding: .5em;
-			line-height: 1;
-			box-shadow: 0 0 3px #999;
-			z-index: 999999;
-		}
-		#tour-launcher span#tour-title {
-			cursor: pointer;
-			line-height: 1.3em;
-		}
-		#tour-launcher span#tour-title:hover {
-			text-shadow: 0 0 1px #999;
-		}
-	</style>
+
 	<div id="tour-launcher" style="display: none;">
 		<span class="dashicons dashicons-admin-site-alt3"></span>
 		<span id="tour-title"></span>
@@ -647,10 +627,11 @@ function show_tour_list() {
 		return '<p>' . esc_html__('There are no tours available.', 'tour') . '</p>';
 	}
 	$tour_list = '<ul id="page-tour-list">';
-	foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
-		$tour_list .= '<li><span data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
-	}
-	$tour_list .= '</ul>';
+    foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
+
+		$tour_list .= '<li><a href="#" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</li>';
+    }
+    $tour_list .= '</ul>';
 
 	return $tour_list;
 }
