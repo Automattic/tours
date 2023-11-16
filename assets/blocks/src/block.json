@@ -15,7 +15,7 @@
 	},
 	"example": {
 		"attributes": {
-			"noToursText": "This shows a list of the available tours."
+			"noToursText": "Here a list of the available tours would be shown."
 		}
 	},
 	"supports": {
