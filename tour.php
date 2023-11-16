@@ -14,10 +14,16 @@ defined( 'ABSPATH' ) || die();
 
 function tour_enqueue_scripts() {
 	static $once = false;
+
 	if ( $once ) {
 		return;
 	}
 	$once = true;
+	$tours = apply_filters( 'tour_list', array() );
+
+	if ( empty( $tours ) ) {
+		return;
+	}
 
 	wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
 	wp_register_style( 'tour-css', plugins_url( 'assets/css/style.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/style.css' ) );
@@ -29,7 +35,7 @@ function tour_enqueue_scripts() {
 	wp_localize_script(
 		'tour',
 		'tour_plugin', array(
-			'tours'    => apply_filters( 'tour_list', array() ),
+			'tours'    => $tours,
 			'nonce'    => wp_create_nonce( 'wp_rest' ),
 			'rest_url' => rest_url(),
 			'progress' => get_user_option( 'tour-progress', get_current_user_id() ),
