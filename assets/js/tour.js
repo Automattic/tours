@@ -202,28 +202,24 @@ document.addEventListener('DOMContentLoaded', function() {
 		if ( pulseToClick ){
 				pulseToClick.click();
 		} else {
-			resetTour( tourId );
-			pulseToClick.click();
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
+			xhr.onload = function () {
+				if ( xhr.status >= 200 && xhr.status < 300 ) {
+					delete tour_plugin.progress[ tourId ];
+					loadTour();
+					pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
+					pulseToClick.click();
+
+				}
+			};
+			xhr.send( JSON.stringify({
+				tour: tourId,
+				step: -1
+			}));
 		}
 	} );
-	function resetTour(tourId){
-		if ( ! tourId ) {
-			return;
-		}
-	
-		var xhr = new XMLHttpRequest();
-		xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
-		xhr.setRequestHeader('Content-Type', 'application/json');
-		xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
-		xhr.onload = function () {
-			if ( xhr.status >= 200 && xhr.status < 300 ) {
-				location.reload();
-			}
-		};
-		xhr.send( JSON.stringify({
-			tour: tourId,
-			step: -1
-		}));
-	}
 }
 );
