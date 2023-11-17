@@ -14,10 +14,16 @@ defined( 'ABSPATH' ) || die();
 
 function tour_enqueue_scripts() {
 	static $once = false;
+
 	if ( $once ) {
 		return;
 	}
 	$once = true;
+	$tours = apply_filters( 'tour_list', array() );
+
+	if ( empty( $tours ) ) {
+		return;
+	}
 
 	wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
 	wp_register_style( 'tour-css', plugins_url( 'assets/css/style.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/style.css' ) );
@@ -29,7 +35,7 @@ function tour_enqueue_scripts() {
 	wp_localize_script(
 		'tour',
 		'tour_plugin', array(
-			'tours'    => apply_filters( 'tour_list', array() ),
+			'tours'    => $tours,
 			'nonce'    => wp_create_nonce( 'wp_rest' ),
 			'rest_url' => rest_url(),
 			'progress' => get_user_option( 'tour-progress', get_current_user_id() ),
@@ -518,7 +524,7 @@ add_filter(
 					array(
 						'title' => $_tour->post_title,
 						'color' => '#3939c7',
-					)
+					),
 				);
 			}
 			$tour[ $_tour->ID ] = $tour_steps;
@@ -534,6 +540,7 @@ function tour_add_admin_menu() {
 }
 
 add_action( 'admin_menu', 'tour_add_admin_menu' );
+add_shortcode('tour_button', 'show_tour_list');
 
 function tour_admin_settings() {}
 
@@ -542,28 +549,7 @@ function output_tour_button() {
 		return;
 	}
 	?>
-	<style>
-		#tour-launcher {
-			position: fixed;
-			bottom: 76px;
-			right: 24px;
-			font-size: 13px;
-			border: 1px solid #ccc;
-			border-radius: 10px;
-			background: #fff;
-			padding: .5em;
-			line-height: 1;
-			box-shadow: 0 0 3px #999;
-			z-index: 999999;
-		}
-		#tour-launcher span#tour-title {
-			cursor: pointer;
-			line-height: 1.3em;
-		}
-		#tour-launcher span#tour-title:hover {
-			text-shadow: 0 0 1px #999;
-		}
-	</style>
+
 	<div id="tour-launcher" style="display: none;">
 		<span class="dashicons dashicons-admin-site-alt3"></span>
 		<span id="tour-title"></span>
