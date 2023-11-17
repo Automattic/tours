@@ -628,16 +628,16 @@ document.addEventListener('click', function( event ) {
  *
  * @return string
  */
-function show_tour_list() {
-	if ( empty( apply_filters( 'tour_list', array() ) ) ) {
-		return '<p>' . esc_html__('There are no tours available.', 'tour') . '</p>';
+function show_tour_list( $attributes ) {
+	$tours = apply_filters( 'tour_list', array() );
+	if ( empty( $tours ) ) {
+		return '<p>' . esc_html( $attributes['noToursText'] ) . '</p>';
 	}
 	$tour_list = '<ul id="page-tour-list">';
-    foreach ( apply_filters( 'tour_list', array() ) as $tour_id => $tour ) {
-
-		$tour_list .= '<li><a href="#" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</li>';
-    }
-    $tour_list .= '</ul>';
+	foreach ( $tours as $tour_id => $tour ) {
+		$tour_list .= '<li><span data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</span></li>';
+	}
+	$tour_list .= '</ul>';
 
 	return $tour_list;
 }
@@ -651,6 +651,13 @@ function show_tour_list() {
  */
 function tour_available_tours_init() {
 	register_block_type( __DIR__ . '/assets/blocks/build', array(
+		'api_version' => 3,
+		'attributes'  => array(
+			'noToursText' => array(
+				'type'    => 'string',
+				'default' => __( 'There are no tours available.', 'tour' ),
+			),
+		),
 		'render_callback' => 'show_tour_list',
 	) );
 }

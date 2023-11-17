@@ -7,7 +7,17 @@
 	"category": "widgets",
 	"icon": "testimonial",
 	"description": "Show a list of available tours.",
-	"example": {},
+	"attributes": {
+		"noToursText": {
+			"type": "string",
+			"default": "There are no tours available."
+		}
+	},
+	"example": {
+		"attributes": {
+			"noToursText": "Here a list of the available tours would be shown."
+		}
+	},
 	"supports": {
 		"html": false
 	},
