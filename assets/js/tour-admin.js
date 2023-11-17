@@ -211,24 +211,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	function show_available_tours_on_page() {
 		let tourListItems = document.querySelectorAll( 'li.admin-bar-tour-item' );
-		let toursOnPage = document.querySelectorAll( '.pulse' );
 
-			if ( ! tourListItems || ! toursOnPage ) {
-				return;
-			}
-			let toursOnPageArray = Array.from( toursOnPage );
-
-			let tourIdsOnPage = toursOnPageArray.map( function(item){
-				return item.dataset.tourId;
-			} );
+		if ( tourListItems ) {
 			for ( let i = 0; i < tourListItems.length; i++ ) {
 				let stringSplit = tourListItems[i].id.split('-');
-				let tourId = stringSplit[stringSplit.length - 1];
-				
-				if (  ! tourIdsOnPage.includes( tourId ) ) {
-					document.querySelector('#wp-admin-bar-tour-' + tourId).remove();
+				let _tourId = stringSplit[stringSplit.length - 1];
+				let tourIsPresent = tour_plugin.tours[ _tourId ][1] && document.querySelector( tour_plugin.tours[ _tourId ][1].element ) ? true : false;
+				if (  ! tourIsPresent ) {
+					document.querySelector( '#wp-admin-bar-tour-' + _tourId ).remove();
 				}
 			}
+		}
 	}
 
 	show_available_tours_on_page();
@@ -242,4 +235,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		document.querySelector( '.pulse.tour-' + tourId ).click();
 		
 	} );
+
+	if ( document.getElementById( 'wp-admin-bar-tour-list' ) ) {
+		if ( document.getElementById( 'wp-admin-bar-tour-list' ).children.length === 0 ) {
+			document.getElementById( 'wp-admin-bar-tour-list' ).style.display = 'none';
+		}
+	}
 });
