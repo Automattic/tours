@@ -697,7 +697,7 @@ function add_tour_item_to_masterbar() {
 	$wp_admin_bar->add_menu(
 		array(
 			'id'    => 'tour-list',
-			'title' => esc_html__('Available Tours', 'tour'),
+			'title' => esc_html__('Tours', 'tour'),
 			'href'  => '#',
 		)
 	);
