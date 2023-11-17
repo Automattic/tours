@@ -690,10 +690,10 @@ add_action( 'init', 'tour_available_tours_init' );
 
 function add_tour_item_to_masterbar() {
     global $wp_admin_bar;
-	if ( empty( apply_filters( 'tour_list', array() ) ) ) {
-		return '<p>' . esc_html__('There are no tours available.', 'tour') . '</p>';
-	}
 	$tours = apply_filters( 'tour_list', array() );
+	if ( empty( $tours ) ) {
+		return;
+	}
 	$wp_admin_bar->add_menu(
 		array(
 			'id'    => 'tour-list',
