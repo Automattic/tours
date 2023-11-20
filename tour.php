@@ -302,7 +302,7 @@ add_filter(
 					if ( ! in_array( $k, array( 'title', 'description' ) ) ) {
 						unset( $step['popover'][$k] );
 					} else {
-						$step['popover'][$k] = preg_replace( '/[\r\n\t ]+/', ' ', $step['popover'][$k] );
+						$step['popover'][$k] = preg_replace( '/[\r\n\t ]+/', ' ', wpautop( $step['popover'][$k] ) );
 						$step['popover'][$k] = wp_kses_post( $step['popover'][$k] );
 					}
 				}
