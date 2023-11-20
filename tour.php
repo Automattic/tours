@@ -299,11 +299,13 @@ add_filter(
 
 				$step['element'] = sanitize_text_field( $step['element'] );
 				foreach ( $step['popover'] as $k => $v ) {
-					if ( ! in_array( $k, array( 'title', 'description' ) ) ) {
-						unset( $step['popover'][$k] );
-					} else {
-						$step['popover'][$k] = preg_replace( '/[\r\n\t ]+/', ' ', wpautop( $step['popover'][$k] ) );
+					if ( 'title' === $k ) {
+						$step['popover'][$k] = sanitize_text_field( $step['popover'][$k] );
+					} elseif ( 'description' === $k ) {
+						$step['popover'][$k] = preg_replace( '/(\s|\x{00a0})+/siu', ' ', nl2br( $step['popover'][$k] ) );
 						$step['popover'][$k] = wp_kses_post( $step['popover'][$k] );
+					} else {
+						unset( $step['popover'][$k] );
 					}
 				}
 				$tour[] = $step;
