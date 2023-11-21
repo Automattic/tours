@@ -170,35 +170,38 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 	loadTour();
-	show_available_tours_on_page();
+	filter_available_tours_on_page();
+	filter_available_tours_on_masterbar();
 
-	function show_available_tours_on_page() {
+	function filter_available_tours_on_page() {
 		let tourListItems = document.querySelectorAll( '#page-tour-list li a' );
 
 		if ( tourListItems ) {
 			for ( let i = 0; i < tourListItems.length; i++ ) {
 				let _tourId = tourListItems[i].dataset.tourId;
-				let tourIsPresent = document.querySelector(tour_plugin.tours[ _tourId ][1].element) ? true : false;
+				let tourIsPresent =  tour_plugin.tours[ _tourId ][1] && document.querySelector(tour_plugin.tours[ _tourId ][1].element) ? true : false;
 				if (  ! tourIsPresent ) {
-					removeTourListItem( tourListItems[i].dataset.tourId );
+					document.querySelector( 'a[data-tour-id="' + _tourId + '"]' ).remove();
 				}
 			}
 		}
 	}
 
-	function removeTourListItem( tourId ) {
-		let toRemove = document.querySelector( 'a[data-tour-id="' + tourId + '"]' );
-		if ( toRemove ) {
-			toRemove.remove();
-		}
-	}
 	document.addEventListener( 'click', function( event ) {
-		if ( ! event.target.matches( '#page-tour-list li a' ) ) {
+		if ( ! event.target.matches( '#page-tour-list li a' ) && ! event.target.matches( 'li.admin-bar-tour-item a' ) ) {
 			return;
 		}
 		event.preventDefault();
-		let tourId = event.target.getAttribute( 'data-tour-id' );
+		let tourId;
+		if ( event.target.matches( 'li.admin-bar-tour-item a' ) ) {
+			let stringSplit = event.target.parentNode.id.split('-');
+			 tourId = stringSplit[stringSplit.length - 1];
+		} else {
+			 tourId = event.target.getAttribute( 'data-tour-id' );
+		}
+
 		let pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
+
 		if ( pulseToClick ){
 				pulseToClick.click();
 		} else {
@@ -221,5 +224,29 @@ document.addEventListener('DOMContentLoaded', function() {
 			}));
 		}
 	} );
+
+	function filter_available_tours_on_masterbar() {
+		let tourListItems = document.querySelectorAll( 'li.admin-bar-tour-item' );
+
+		if ( tourListItems ) {
+			for ( let i = 0; i < tourListItems.length; i++ ) {
+				let stringSplit = tourListItems[i].id.split('-');
+				let _tourId = stringSplit[stringSplit.length - 1];
+				console.log( tour_plugin.tours[ _tourId ][1]);
+
+				let tourIsPresent = tour_plugin.tours[ _tourId ][1] && document.querySelector( tour_plugin.tours[ _tourId ][1].element ) ? true : false;
+				if (  ! tourIsPresent ) {
+					document.querySelector( '#wp-admin-bar-tour-' + _tourId ).remove();
+				}
+			}
+		}
+	}
+
+
+	if ( document.getElementById( 'wp-admin-bar-tour-list-default' ) ) {
+		if ( document.getElementById( 'wp-admin-bar-tour-list-default' ).children.length === 0 ) {
+			document.getElementById( 'wp-admin-bar-tour-list' ).style.display = 'none';
+		}
+	}
 }
 );

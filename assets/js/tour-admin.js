@@ -207,38 +207,3 @@ document.addEventListener('mouseover', tourStepHighlighter);
 document.addEventListener('mouseout', clearHighlight);
 document.addEventListener('click', tourStepSelector);
 
-document.addEventListener('DOMContentLoaded', function() {
-	
-	function show_available_tours_on_page() {
-		let tourListItems = document.querySelectorAll( 'li.admin-bar-tour-item' );
-
-		if ( tourListItems ) {
-			for ( let i = 0; i < tourListItems.length; i++ ) {
-				let stringSplit = tourListItems[i].id.split('-');
-				let _tourId = stringSplit[stringSplit.length - 1];
-				let tourIsPresent = tour_plugin.tours[ _tourId ][1] && document.querySelector( tour_plugin.tours[ _tourId ][1].element ) ? true : false;
-				if (  ! tourIsPresent ) {
-					document.querySelector( '#wp-admin-bar-tour-' + _tourId ).remove();
-				}
-			}
-		}
-	}
-
-	show_available_tours_on_page();
-
-	document.addEventListener( 'click', function( event ) {
-		if ( ! event.target.matches( 'li.admin-bar-tour-item a' ) ) {
-			return;
-		}
-		let listIdAttr = event.target.closest('li.admin-bar-tour-item');
-		let tourId = listIdAttr.id.split('-')[4];
-		document.querySelector( '.pulse.tour-' + tourId ).click();
-		
-	} );
-
-	if ( document.getElementById( 'wp-admin-bar-tour-list-default' ) ) {
-		if ( document.getElementById( 'wp-admin-bar-tour-list-default' ).children.length === 0 ) {
-			document.getElementById( 'wp-admin-bar-tour-list' ).style.display = 'none';
-		}
-	}
-});
