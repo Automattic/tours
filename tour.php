@@ -242,7 +242,7 @@ add_filter(
 
 
 add_filter('get_the_excerpt',
-	function ( $excerpt, $post ) {
+	function ( $excerpt, $post = null ) {
 		if ( get_post_type( $post ) === 'tour' ) {
 			$steps = json_decode( $post->post_content );
 			if ( $steps ) {
