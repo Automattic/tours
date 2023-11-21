@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	};
 	loadTour();
 	filter_available_tours_on_page();
-	filter_available_tours_on_masterbar();
+	setTimeout( filter_available_tours_on_masterbar, 500 );
 
 	function filter_available_tours_on_page() {
 		let tourListItems = document.querySelectorAll( '#page-tour-list li a' );
