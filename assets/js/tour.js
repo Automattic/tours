@@ -232,7 +232,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			for ( let i = 0; i < tourListItems.length; i++ ) {
 				let stringSplit = tourListItems[i].id.split('-');
 				let _tourId = stringSplit[stringSplit.length - 1];
-				console.log( tour_plugin.tours[ _tourId ][1]);
 
 				let tourIsPresent = tour_plugin.tours[ _tourId ][1] && document.querySelector( tour_plugin.tours[ _tourId ][1].element ) ? true : false;
 				if (  ! tourIsPresent ) {
