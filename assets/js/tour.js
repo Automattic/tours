@@ -148,10 +148,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		let color1 = '';
 		let color2 = '';
 		const styleElement = document.createElement( 'style' );
-		const style = styleElement.sheet;
 		let startStep;
 
 		document.head.appendChild( styleElement );
+		const style = styleElement.sheet;
 
 		for ( const tourId in tour_plugin.tours ) {
 			color1 = tour_plugin.tours[ tourId ][ 0 ].color;
