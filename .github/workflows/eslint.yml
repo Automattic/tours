@@ -1,0 +1,42 @@
+name: ESLint
+
+on:
+  # Run on all pushes and on all pull requests.
+  push:
+  pull_request:
+  # Allow manually triggering the workflow.
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for the same branch that have not yet completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  #### JavaScript Code Linting ####
+  lint:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: ['14', '16']
+
+    continue-on-error: ${{ matrix.node == '16' }}
+
+    name: "Lint: Node ${{ matrix.node }}"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint JavaScript files
+        run: npm run lint
