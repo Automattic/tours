@@ -68,8 +68,8 @@ class Tour {
 		);
 
 		if ( current_user_can( 'edit_posts' ) ) {
-			wp_register_script( 'tour-admin', plugins_url( 'assets/js/tour-admin.js', __FILE__ ), array( 'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-admin.js' ), array( 'in_footer' => true ) );
-			wp_enqueue_script( 'tour-admin' );
+			wp_register_script( 'tour-step-editor', plugins_url( 'assets/js/tour-step-editor.js', __FILE__ ), array( 'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-step-editor.js' ), array( 'in_footer' => true ) );
+			wp_enqueue_script( 'tour-step-editor' );
 		}
 	}
 
