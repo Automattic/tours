@@ -27,12 +27,14 @@ import { PanelBody, TextControl } from '@wordpress/components';
  * The edit function describes the structure of your block in the context of the
  * editor. This represents what the editor will render when the block is used.
  *
+ * @param  root0
+ * @param  root0.attributes
+ * @param  root0.setAttributes
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
  *
  * @return {Element} Element to render.
  */
-export default function Edit({ attributes, setAttributes }) {
-
+export default function Edit( { attributes, setAttributes } ) {
 	return (
 		<div { ...useBlockProps() }>
 			<InspectorControls key="settings">
@@ -40,14 +42,16 @@ export default function Edit({ attributes, setAttributes }) {
 					<TextControl
 						label={ __( 'No Tours Text', 'tour' ) }
 						value={ attributes.noToursText }
-						onChange={( newValue ) => setAttributes({ noToursText: newValue })}
+						onChange={ ( newValue ) =>
+							setAttributes( { noToursText: newValue } )
+						}
 					/>
 				</PanelBody>
 			</InspectorControls>
-				<ServerSideRender
-					block="tour/available-tours"
-					attributes={ attributes }
-				/>
+			<ServerSideRender
+				block="tour/available-tours"
+				attributes={ attributes }
+			/>
 		</div>
-		);
-	}
+	);
+}
