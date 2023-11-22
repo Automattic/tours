@@ -7,7 +7,10 @@
  * The class containting all hooks for the Tour.
  */
 class Tour {
-	public static function init() {
+	/**
+	 * Register all hooks.
+	 */
+	public static function register_hooks() {
 		$class = get_called_class();
 		add_action( 'admin_enqueue_scripts', array( $class, 'enqueue_scripts' ) );
 		add_action( 'wp_enqueue_scripts', array( $class, 'enqueue_scripts' ) );
@@ -16,7 +19,7 @@ class Tour {
 		add_action( 'init', array( $class, 'register_block_type' ) );
 		add_action( 'rest_api_init', array( $class, 'rest_api_init' ) );
 		add_filter( 'post_row_actions', array( $class, 'post_row_actions' ), 10, 2 );
-		add_filter( 'tour_row_actions', array( $class, 'tour_row_actions' ), 10, 2 );
+		add_filter( 'tour_row_actions', array( $class, 'tour_row_actions' ) );
 		add_filter( 'get_the_excerpt', array( $class, 'get_the_excerpt' ), 10, 2 );
 		add_filter( 'wp_insert_post_data', array( $class, 'wp_insert_post_data' ), 10, 2 );
 		add_action( 'postbox_classes_tour_tour-json', array( $class, 'add_closed_css_class' ) );
@@ -28,18 +31,20 @@ class Tour {
 		add_action( 'wp_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'admin_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'show_user_profile', array( $class, 'show_user_profile' ) );
-		add_action( 'wp_before_admin_bar_render', array( $class, 'add_tour_item_to_masterbar' ) );
+		add_action( 'wp_before_admin_bar_render', array( $class, 'add_tours_menu_to_masterbar' ) );
 	}
 
+	/**
+	 * Enqueue the scripts.
+	 */
 	public static function enqueue_scripts() {
 		static $once = false;
-
 		if ( $once ) {
 			return;
 		}
-		$once  = true;
-		$tours = apply_filters( 'tour_list', array() );
+		$once = true;
 
+		$tours = apply_filters( 'tour_list', array() );
 		if ( empty( $tours ) ) {
 			return;
 		}
@@ -68,10 +73,20 @@ class Tour {
 		}
 	}
 
+	/**
+	 * Ensure that the post_content is properly decoded to JSON.
+	 *
+	 * @param      string $post_content  The post content.
+	 *
+	 * @return     array  The decoded JSON.
+	 */
 	private static function json_decode( $post_content ) {
 		return json_decode( wp_unslash( str_replace( "\\\\'", "'", $post_content ) ), true );
 	}
 
+	/**
+	 * Register the post type.
+	 */
 	public static function register_post_type() {
 		register_post_type(
 			'tour',
@@ -99,6 +114,9 @@ class Tour {
 		);
 	}
 
+	/**
+	 * Initialize the REST API endpoints.
+	 */
 	public static function rest_api_init() {
 		register_rest_route(
 			'tour/v1',
@@ -113,7 +131,7 @@ class Tour {
 					$tour_id = $request->get_param( 'tour' );
 
 					$tour = get_post( $tour_id );
-					if ( ! $tour || is_wp_error( $tour ) || $tour->post_type !== 'tour' ) {
+					if ( ! $tour || is_wp_error( $tour ) || 'tour' !== $tour->post_type ) {
 						return array(
 							'success' => false,
 						);
@@ -148,7 +166,7 @@ class Tour {
 					$url = $request->get_param( 'url' );
 
 					$tour = get_post( $tour_id );
-					if ( ! $tour || is_wp_error( $tour ) || $tour->post_type !== 'tour' ) {
+					if ( ! $tour || is_wp_error( $tour ) || 'tour' !== $tour->post_type ) {
 						return array(
 							'success' => false,
 						);
@@ -206,7 +224,7 @@ class Tour {
 					$tour_id = $request->get_param( 'tour' );
 
 					$tour = get_post( $tour_id );
-					if ( ! $tour || is_wp_error( $tour ) || $tour->post_type !== 'tour' ) {
+					if ( ! $tour || is_wp_error( $tour ) || 'tour' !== $tour->post_type ) {
 						return array(
 							'success' => false,
 						);
@@ -229,8 +247,16 @@ class Tour {
 		);
 	}
 
+	/**
+	 * Register post row actions.
+	 *
+	 * @param      array   $actions  The actions.
+	 * @param      WP_Post $post     The post.
+	 *
+	 * @return     array  The modified actions.
+	 */
 	public static function post_row_actions( $actions, $post ) {
-		if ( $post->post_type !== 'tour' || $post->post_status === 'trash' ) {
+		if ( 'tour' !== $post->post_type || 'trash' === $post->post_status ) {
 			return $actions;
 		}
 
@@ -245,19 +271,33 @@ class Tour {
 		return $actions;
 	}
 
-	public static function tour_row_actions( $actions, $tag ) {
+	/**
+	 * Add a row action to the tour post type.
+	 *
+	 * @param      array $actions  The actions.
+	 *
+	 * @return     array The modified actions.
+	 */
+	public static function tour_row_actions( $actions ) {
 		$actions[] = 'Add more steps';
 		return $actions;
 	}
 
-
+	/**
+	 * Get a custom excerpt for the tour post type.
+	 *
+	 * @param      string  $excerpt  The excerpt.
+	 * @param      WP_Post $post     The post.
+	 *
+	 * @return     string  The excerpt.
+	 */
 	public static function get_the_excerpt( $excerpt, $post = null ) {
 		if ( get_post_type( $post ) === 'tour' ) {
 			$steps = self::json_decode( $post->post_content );
 			if ( $steps ) {
 				$c = ( count( $steps ) - 1 );
 				return sprintf(
-					// translators: %d is the number of steps
+					// translators: %d is the number of steps.
 					_n( '%d step', '%d steps', $c, 'tour' ),
 					$c
 				);
@@ -267,6 +307,14 @@ class Tour {
 		return $excerpt;
 	}
 
+	/**
+	 * Store the tour as a JSON in the post_content.
+	 *
+	 * @param      array $data     The data.
+	 * @param      array $postarr  The postarr.
+	 *
+	 * @return     array  The modified data with the tour as JSON.
+	 */
 	public static function wp_insert_post_data( $data, $postarr ) {
 		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'update-post_' . $postarr['ID'] ) ) {
 			return $data;
@@ -322,11 +370,23 @@ class Tour {
 		return $data;
 	}
 
+	/**
+	 * Adds a css class 'closed' to the postbox_classes_tour_tour-json.
+	 *
+	 * This is so that the JSON box is closed by default.
+	 *
+	 * @param      array $classes  The classes.
+	 *
+	 * @return     array  The modified classes.
+	 */
 	public static function add_closed_css_class( $classes ) {
 		$classes[] = 'closed';
 		return $classes;
 	}
 
+	/**
+	 * Add the tour-json meta box.
+	 */
 	public static function admin_init() {
 		add_meta_box(
 			'tour-json',
@@ -334,7 +394,7 @@ class Tour {
 			function ( $post ) {
 				$tour = self::json_decode( $post->post_content );
 				if ( $tour ) {
-					$json = json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+					$json = wp_json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
 					?><textarea name="json" style="font-family: monospace; width: 100%" rows="<?php echo esc_attr( min( 50, 2 + count( explode( PHP_EOL, $json ) ) ) ); ?>" onchange="void(document.getElementById('override_json').checked=true)"><?php echo esc_html( $json ); ?></textarea><br/>
 					<label><input type="checkbox" id="override_json" name="override_json" value="1"> <?php esc_html_e( 'Override when saving', 'tour' ); ?></label>
 					<?php
@@ -346,6 +406,11 @@ class Tour {
 		);
 	}
 
+	/**
+	 * Show the custom tour edit fields after the editor.
+	 *
+	 * @param      WP_Post $post   The post.
+	 */
 	public static function edit_form_after_editor( $post ) {
 		if ( 'tour' !== get_post_type( $post ) ) {
 			return;
@@ -531,30 +596,37 @@ class Tour {
 		<?php
 	}
 
-	public static function tour_list( $tour ) {
+	/**
+	 * Add the tours post_type posts via the tour_list hook.
+	 *
+	 * @param      array $tours   The tours.
+	 *
+	 * @return     array The augmented tours.
+	 */
+	public static function tour_list( $tours ) {
 		$args = array(
 			'post_type'      => 'tour',
 			'posts_per_page' => -1,
 		);
+
 		if ( current_user_can( 'edit_posts' ) ) {
 			$args['post_status'] = array( 'publish', 'draft' );
 		}
-		$tours = get_posts( $args );
 
-		foreach ( $tours as $_tour ) {
-			$tour_steps = self::json_decode( $_tour->post_content );
+		foreach ( get_posts( $args ) as $tour ) {
+			$tour_steps = self::json_decode( $tour->post_content );
 			if ( ! $tour_steps ) {
 				$tour_steps = array(
 					array(
-						'title' => $_tour->post_title,
+						'title' => $tour->post_title . ( 'draft' === $tour->post_status ? ' (Draft)' : '' ),
 						'color' => '#3939c7',
 					),
 				);
 			}
-			$tour[ $_tour->ID ] = $tour_steps;
+			$tours[ $tour->ID ] = $tour_steps;
 		}
 
-		return $tour;
+		return $tours;
 	}
 
 	/**
@@ -655,9 +727,11 @@ class Tour {
 	}
 
 	/**
-	 * Outputs the tour list.
+	 * Shows the tour list.
 	 *
-	 * @return string
+	 * @param      array $attributes  The attributes.
+	 *
+	 * @return     string  The content.
 	 */
 	public static function show_tour_list( $attributes ) {
 		$tours = apply_filters( 'tour_list', array() );
@@ -673,6 +747,9 @@ class Tour {
 		return $tour_list;
 	}
 
+	/**
+	 * Register the Available Tours block.
+	 */
 	public static function register_block_type() {
 		register_block_type(
 			__DIR__ . '/assets/blocks/build',
@@ -684,12 +761,15 @@ class Tour {
 						'default' => __( 'There are no tours available.', 'tour' ),
 					),
 				),
-				'render_callback' => 'show_tour_list',
+				'render_callback' => array( get_called_class(), 'show_tour_list' ),
 			)
 		);
 	}
 
-	public static function add_tour_item_to_masterbar() {
+	/**
+	 * Adds the tours menu to masterbar.
+	 */
+	public static function add_tours_menu_to_masterbar() {
 		global $wp_admin_bar;
 		$tours = apply_filters( 'tour_list', array() );
 		if ( empty( $tours ) ) {

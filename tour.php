@@ -9,9 +9,11 @@
  * Text Domain: tour
  * License: GPLv2 or later
  *
+ * @package Tour
  */
+
 defined( 'ABSPATH' ) || die();
 define( 'TOUR_VERSION', '1.0' );
 
-include __DIR__ . '/class-tour.php';
-Tour::init();
+require __DIR__ . '/class-tour.php';
+Tour::register_hooks();
