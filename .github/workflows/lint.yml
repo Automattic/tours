@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   #### PHP Code Linting ####
-  lint:
+  phplint:
     runs-on: ubuntu-latest
 
     strategy:
@@ -68,3 +68,30 @@ jobs:
       - name: "Lint PHP files against parse errors - PHP >= 8.0"
         if: ${{ matrix.php >= 8.0 }}
         run: composer lint-gte80
+
+  #### JavaScript Code Linting ####
+  jslint:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: ['14', '16']
+
+    continue-on-error: ${{ matrix.node == '16' }}
+
+    name: "Lint: Node ${{ matrix.node }}"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint JavaScript files
+        run: npm run lint:js
