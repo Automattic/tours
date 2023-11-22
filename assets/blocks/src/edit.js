@@ -27,11 +27,10 @@ import { PanelBody, TextControl } from '@wordpress/components';
  * The edit function describes the structure of your block in the context of the
  * editor. This represents what the editor will render when the block is used.
  *
- * @param  root0
- * @param  root0.attributes
- * @param  root0.setAttributes
- * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
- *
+ * @class      Edit (name)
+ * @param {Object}   arg1               The argument 1.
+ * @param {Object}   arg1.attributes    The attributes.
+ * @param {Function} arg1.setAttributes The set attributes.
  * @return {Element} Element to render.
  */
 export default function Edit( { attributes, setAttributes } ) {

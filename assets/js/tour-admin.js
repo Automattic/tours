@@ -1,12 +1,12 @@
-if ( typeof wp_tour !== 'undefined' ) {
-	window.tour = wp_tour;
-}
+/* global tour_plugin, XMLHttpRequest */
+/* eslint camelcase: "off" */
+
 let tourSelectorActive = false;
 let tourId;
 let dialogOpen = false;
 
-const setTourCookie = function ( tourId ) {
-	document.cookie = 'tour=' + escape( tourId ) + ';path=/';
+const setTourCookie = function ( id ) {
+	document.cookie = 'tour=' + escape( id ) + ';path=/';
 	enableTourCreation();
 };
 
@@ -56,7 +56,7 @@ function enableTourCreation() {
 				' step' +
 				( tour_plugin.tours[ tourId ].length > 2 ? 's' : '' );
 			for ( let i = 1; i < tour_plugin.tours[ tourId ].length; i++ ) {
-				el = document.querySelector(
+				const el = document.querySelector(
 					tour_plugin.tours[ tourId ][ i ].selector
 				);
 				if ( el ) {
@@ -87,7 +87,7 @@ function reportMissingSelector( tourTitle, step, selector ) {
 			tour: tourId,
 			selector,
 			step,
-			url: location.href,
+			url: window.location.href,
 		} )
 	);
 }
@@ -162,7 +162,7 @@ const tourStepSelector = function ( event ) {
 		while ( elem.parentElement ) {
 			const currentElement = elem.parentElement;
 			const tagName = elem.tagName.toLowerCase();
-			var classes = [];
+			const classes = [];
 
 			if ( elem.id ) {
 				selectors.push( tagName + '#' + elem.id );
@@ -195,17 +195,18 @@ const tourStepSelector = function ( event ) {
 
 	event.preventDefault();
 
-	const selectors = getSelectors( event.target );
-
 	dialogOpen = true;
-	const stepName = prompt(
+
+	const stepName = /* eslint-disable-line no-alert */ window.prompt(
 		'Enter description for step ' + tour_plugin.tours[ tourId ].length
 	);
+
 	if ( ! stepName ) {
 		event.target.style.outline = '';
 		return false;
 	}
 
+	const selectors = getSelectors( event.target );
 	tour_plugin.tours[ tourId ].push( {
 		element: selectors.join( ' ' ),
 		popover: {

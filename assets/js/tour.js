@@ -1,4 +1,4 @@
-/* global , document, window, wp_tour */
+/* global tour_plugin, XMLHttpRequest */
 /* eslint camelcase: "off" */
 
 document.addEventListener( 'DOMContentLoaded', function () {
@@ -38,10 +38,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		};
 		tourSteps[ startStep ].element =
 			event.target.closest( '.pulse-wrapper' );
-		var driverObj = driver( {
+		const driverObj = driver( {
 			showProgress: true,
 			steps: tourSteps,
-			onHighlightStarted( element, step, options ) {
+			onHighlightStarted( element, step ) {
 				step.popover.description +=
 					'<br><a href="" class="dismiss-tour">Dismiss the tour';
 			},
@@ -148,11 +148,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		let color1 = '';
 		let color2 = '';
 		const styleElement = document.createElement( 'style' );
-		let style;
+		const style = styleElement.sheet;
 		let startStep;
 
 		document.head.appendChild( styleElement );
-		style = styleElement.sheet;
 
 		for ( const tourId in tour_plugin.tours ) {
 			color1 = tour_plugin.tours[ tourId ][ 0 ].color;
