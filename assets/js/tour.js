@@ -241,8 +241,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 
 		if ( document.getElementById( 'wp-admin-bar-tour-list-default' ) ) {
-			if ( document.getElementById( 'wp-admin-bar-tour-list-default' ).children.length === 0 ) {
-				document.getElementById( 'wp-admin-bar-tour-list' ).style.display = 'none';
+			if ( document.getElementById( 'wp-admin-bar-tour-list-default' ).children.length > 0 ) {
+				document.getElementById( 'wp-admin-bar-tour-list' ).style.display = 'block';
 			}
 		}
 	}
