@@ -52,6 +52,10 @@ add_action( 'admin_enqueue_scripts', 'tour_enqueue_scripts' );
 add_action( 'wp_enqueue_scripts', 'tour_enqueue_scripts' );
 add_action( 'gp_head', 'wp_enqueue_scripts' );
 
+function tour_decode_json( $post_content ) {
+	return json_decode( wp_unslash( str_replace( "\\\\'", "'", $post_content ) ), true );
+}
+
 function tour_register_post_type() {
 	register_post_type(
 		'tour',
@@ -199,7 +203,7 @@ add_action(
 						wp_update_post(
 							array(
 								'ID'           => $tour_id,
-								'post_content' => json_encode( $steps ),
+								'post_content' => wp_json_encode( $steps, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
 								'post_status'  => 'publish',
 							),
 							true
@@ -220,7 +224,7 @@ add_filter(
 			return $actions;
 		}
 
-		$tour_steps = json_decode( $post->post_content, true );
+		$tour_steps = tour_decode_json( $post->post_content );
 		if ( empty( $tour_steps[0]['title'] ) ) {
 			return $actions;
 		}
@@ -244,7 +248,7 @@ add_filter(
 add_filter('get_the_excerpt',
 	function ( $excerpt, $post = null ) {
 		if ( get_post_type( $post ) === 'tour' ) {
-			$steps = json_decode( $post->post_content );
+			$steps = tour_decode_json( $post->post_content );
 			if ( $steps ) {
 				$c = ( count( $steps ) - 1 );
 				return sprintf(
@@ -313,7 +317,7 @@ add_filter(
 
 		}
 
-		$data['post_content'] = wp_json_encode( wp_slash( $tour ) );
+		$data['post_content'] = wp_json_encode( wp_slash( $tour ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 
 		return $data;
 	},
@@ -330,7 +334,7 @@ add_action( 'admin_init', function() {
 		'tour-json',
 		'JSON',
 		function( $post ) {
-			$tour = json_decode( $post->post_content, true );
+			$tour = tour_decode_json( $post->post_content );
 			if ( $tour ) {
 				$json = json_encode( $tour, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
 				?><textarea name="json" style="font-family: monospace; width: 100%" rows="<?php echo esc_attr( min( 50, 2 + count( explode( PHP_EOL, $json ) ) ) ); ?>" onchange="void(document.getElementById('override_json').checked=true)"><?php echo esc_html( $json ); ?></textarea><br/>
@@ -350,7 +354,7 @@ add_action( 'edit_form_after_editor', function( $post ) {
 	}
 	wp_tinymce_inline_scripts();
 
-	$tour = wp_unslash( json_decode( $post->post_content, true ) );
+	$tour = tour_decode_json( $post->post_content );
 	if ( ! $tour ) {
 		$color = '#3939c7';
 		$tour = array();
@@ -539,7 +543,7 @@ add_filter(
 		$tours = get_posts( $args );
 
 		foreach ( $tours as $_tour ) {
-			$tour_steps         = json_decode( $_tour->post_content, true );
+			$tour_steps = tour_decode_json( $_tour->post_content );
 			if ( ! $tour_steps ) {
 				$tour_steps = array(
 					array(
