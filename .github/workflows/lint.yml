@@ -24,7 +24,7 @@ jobs:
 
     continue-on-error: ${{ matrix.php == '8.3' }}
 
-    name: "Lint: PHP ${{ matrix.php }}"
+    name: "PHP ${{ matrix.php }}"
 
     steps:
       - name: Checkout code
@@ -75,11 +75,9 @@ jobs:
 
     strategy:
       matrix:
-        node: ['14', '16']
+        node: ['16']
 
-    continue-on-error: ${{ matrix.node == '16' }}
-
-    name: "Lint: Node ${{ matrix.node }}"
+    name: "JS ${{ matrix.node }}"
 
     steps:
       - name: Checkout code
