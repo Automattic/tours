@@ -43,7 +43,7 @@ function tour_enqueue_scripts() {
 	);
 
 	if ( current_user_can( 'edit_posts' ) ) {
-		wp_register_script( 'tour-admin', plugins_url( 'assets/js/tour-admin.js', __FILE__ ), array(  'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-admin.js' ), true );
+		wp_register_script( 'tour-admin', plugins_url( 'assets/js/tour-admin.js', __FILE__ ), array(  'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-admin.js' ), array( 'in_footer' => true ) );
 		wp_enqueue_script( 'tour-admin' );
 	}
 }
@@ -687,3 +687,33 @@ function tour_available_tours_init() {
 	) );
 }
 add_action( 'init', 'tour_available_tours_init' );
+
+function add_tour_item_to_masterbar() {
+    global $wp_admin_bar;
+	$tours = apply_filters( 'tour_list', array() );
+	if ( empty( $tours ) ) {
+		return;
+	}
+	$wp_admin_bar->add_menu(
+		array(
+			'id'    => 'tour-list',
+			'title' => esc_html__('Tours', 'tour'),
+			'href'  => '#',
+		)
+	);
+
+	foreach ( $tours as $tour_id => $tour ) {
+		$wp_admin_bar->add_menu(
+			array(
+				'parent' => 'tour-list',
+				'id'     => 'tour-' . esc_html( $tour_id ),
+				'title'  => esc_html( $tour[0]['title'] ),
+				'href'   => '#',
+				'meta'  => array(
+					'class' => 'admin-bar-tour-item',
+				),
+			)
+		);
+	}
+}
+add_action('wp_before_admin_bar_render', 'add_tour_item_to_masterbar');

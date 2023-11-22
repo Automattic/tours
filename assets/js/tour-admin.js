@@ -206,3 +206,4 @@ document.addEventListener('keyup', function(event) {
 document.addEventListener('mouseover', tourStepHighlighter);
 document.addEventListener('mouseout', clearHighlight);
 document.addEventListener('click', tourStepSelector);
+

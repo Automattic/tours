@@ -37,3 +37,6 @@ ul#page-tour-list li a {
 #page-tour-list {
 	font-size: .8em;
 }
+#wp-admin-bar-tour-list {
+	display: none;
+}
