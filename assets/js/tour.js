@@ -145,7 +145,9 @@ document.addEventListener( 'DOMContentLoaded', function () {
 	}
 
 	const loadTour = function () {
-		const styleElement = document.getElementById( 'tour-styles' ) || document.createElement( 'style' );
+		const styleElement =
+			document.getElementById( 'tour-styles' ) ||
+			document.createElement( 'style' );
 		let style = null;
 		let color1 = '';
 		let color2 = '';
@@ -222,7 +224,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 		for ( let i = 0; i < tourListItems.length; i++ ) {
 			let tourId = tourListItems[ i ].dataset.tourId;
-			if ( ! tourId && tourListItems[ i ].id.substr( 0, 18 ) === 'wp-admin-bar-tour-' ) {
+			if (
+				! tourId &&
+				tourListItems[ i ].id.substr( 0, 18 ) === 'wp-admin-bar-tour-'
+			) {
 				tourId = tourListItems[ i ].id.substr( 18 );
 			}
 
@@ -261,7 +266,6 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		let target = event.target;
 		if ( target.matches( '.tour-list-item a' ) ) {
 			target = target.parentNode;
-			console.log( target );
 		} else if ( ! target.matches( '.tour-list-item' ) ) {
 			return true;
 		}
@@ -272,8 +276,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			tourId = target.id.substr( 18 );
 		}
 
-		if ( ! tour_plugin.tours[tourId] ) {
-			console.log( tourId );
+		if ( ! tour_plugin.tours[ tourId ] ) {
 			return false;
 		}
 		let pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
