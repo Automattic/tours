@@ -40,3 +40,6 @@ ul#page-tour-list li a {
 #wp-admin-bar-tour-list {
 	display: none;
 }
+.inline-tour-list {
+	cursor: pointer;
+}

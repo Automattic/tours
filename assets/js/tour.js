@@ -212,9 +212,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 	setTimeout( filter_available_tours_on_masterbar, 500 );
 
 	function filter_available_tours_on_page() {
-		const tourListItems = document.querySelectorAll(
-			'#page-tour-list li a'
-		);
+		const tourListItems = document.querySelectorAll( '.inline-tour-list' );
 
 		if ( tourListItems ) {
 			for ( let i = 0; i < tourListItems.length; i++ ) {
@@ -228,7 +226,9 @@ document.addEventListener( 'DOMContentLoaded', function () {
 						: false;
 				if ( ! tourIsPresent ) {
 					document
-						.querySelector( 'a[data-tour-id="' + _tourId + '"]' )
+						.querySelector(
+							'.inline-tour-list[data-tour-id="' + _tourId + '"]'
+						)
 						.remove();
 				}
 			}
