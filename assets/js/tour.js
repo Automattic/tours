@@ -231,7 +231,12 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				tourId = tourListItems[ i ].id.substr( 18 );
 			}
 
-			if ( ! tour_plugin.tours[ tourId ] ) {
+			if (
+				! tour_plugin.tours[ tourId ] ||
+				! document.querySelector(
+					'.tour-list-item[data-tour-id="' + tourId + '"]'
+				)
+			) {
 				continue;
 			}
 			const tourIsPresent =
