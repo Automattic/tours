@@ -1,0 +1,95 @@
+name: Lint
+
+on:
+  # Run on all pushes and on all pull requests.
+  push:
+  pull_request:
+  # Allow manually triggering the workflow.
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for the same branch that have not yet completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  #### PHP Code Linting ####
+  phplint:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3']
+
+    continue-on-error: ${{ matrix.php == '8.3' }}
+
+    name: "PHP ${{ matrix.php }}"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          ini-values: zend.assertions=1, error_reporting=-1, display_errors=On
+          coverage: none
+
+      - name: 'Composer: remove PHPUnit (not needed for lint)'
+        run: composer remove phpunit/phpunit --no-update --no-interaction
+
+      # Install dependencies and handle caching in one go.
+      # @link https://github.com/marketplace/actions/install-composer-dependencies
+      - name: Install Composer dependencies - normal
+        if: matrix.php != '8.3'
+        uses: "ramsey/composer-install@v2"
+        with:
+          # Bust the cache at least once a month - output format: YYYY-MM.
+          custom-cache-suffix: $(date -u "+%Y-%m")
+
+      - name: Install Composer dependencies - ignore PHP restrictions
+        if: matrix.php == '8.3'
+        uses: "ramsey/composer-install@v2"
+        with:
+          composer-options: --ignore-platform-req=php+
+          # Bust the cache at least once a month - output format: YYYY-MM.
+          custom-cache-suffix: $(date -u "+%Y-%m")
+
+      - name: "Lint PHP files against parse errors - PHP < 7.0"
+        if: ${{ matrix.php < 7.0 }}
+        run: composer lint-lt70
+
+      - name: "Lint PHP files against parse errors - PHP 7.x"
+        if: ${{ startsWith( matrix.php, '7' ) }}
+        run: composer lint7
+
+      - name: "Lint PHP files against parse errors - PHP >= 8.0"
+        if: ${{ matrix.php >= 8.0 }}
+        run: composer lint-gte80
+
+  #### JavaScript Code Linting ####
+  jslint:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: ['16']
+
+    name: "JS ${{ matrix.node }}"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint JavaScript files
+        run: npm run lint:js

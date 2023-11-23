@@ -1,0 +1,38 @@
+{
+	"name": "automattic/tour",
+	"description": "A WordPress plugin for creating tours for your site.",
+	"license": "GPL-2.0-or-later",
+	"require-dev": {
+		"phpcompatibility/php-compatibility": "*",
+		"wp-coding-standards/wpcs": "*"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"prefer-stable": true,
+	"scripts": {
+		"lint7": [
+			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --exclude vendor --exclude .git"
+		],
+		"lint-lt70": [
+			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --exclude vendor --exclude .git"
+		],
+		"lint-gte80": [
+			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --exclude vendor --exclude .git"
+		],
+		"check-cs": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --runtime-set testVersion 7.4-"
+		],
+		"fix-cs": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf"
+		],
+		"test": [
+			"@php ./vendor/phpunit/phpunit/phpunit --no-coverage"
+		]
+	},
+	"require": {
+		"php-parallel-lint/php-parallel-lint": "^1.3"
+	}
+}
