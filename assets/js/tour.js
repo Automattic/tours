@@ -240,18 +240,16 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				document.querySelector(
 					tour_plugin.tours[ tourId ][ 1 ].element
 				);
-			if ( ! tourIsPresent ) {
-				document
-					.querySelectorAll(
-						'.tour-list-item[data-tour-id="' +
-							tourId +
-							'"], #wp-admin-bar-tour-' +
-							tourId
-					)
-					.forEach( function ( element ) {
-						element.style.display = 'none';
-					} );
-			}
+			document
+				.querySelectorAll(
+					'.tour-list-item[data-tour-id="' +
+						tourId +
+						'"], #wp-admin-bar-tour-' +
+						tourId
+				)
+				.forEach( function ( element ) {
+					element.style.display = tourIsPresent ? 'block' : 'none';
+				} );
 		}
 
 		if ( document.getElementById( 'wp-admin-bar-tour-list-default' ) ) {
