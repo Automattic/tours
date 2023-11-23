@@ -213,7 +213,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 	function filter_available_tours_on_page() {
 		const tourListItems = document.querySelectorAll(
-			'#page-tour-list li a'
+			'.inline-tour-list'
 		);
 
 		if ( tourListItems ) {
@@ -228,7 +228,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 						: false;
 				if ( ! tourIsPresent ) {
 					document
-						.querySelector( 'a[data-tour-id="' + _tourId + '"]' )
+						.querySelector( '.inline-tour-list[data-tour-id="' + _tourId + '"]' )
 						.remove();
 				}
 			}
