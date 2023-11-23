@@ -46,6 +46,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 					'<br><a href="" class="dismiss-tour">Dismiss the tour';
 			},
 			onHighlighted( element, step, options ) {
+				tour_plugin.progress[ tourId ] = options.state.activeIndex + 1;
 				const xhr = new XMLHttpRequest();
 				xhr.open(
 					'POST',
