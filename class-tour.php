@@ -320,7 +320,7 @@ class Tour {
 			return $data;
 		}
 
-		if ( ! isset( $_POST['tour'] ) || ! isset( $_POST['color'] ) || 'tour' !== $data['post_type'] ) {
+		if ( ! isset( $_POST['color'] ) || 'tour' !== $data['post_type'] ) {
 			return $data;
 		}
 
