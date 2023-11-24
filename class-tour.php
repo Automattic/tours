@@ -623,8 +623,8 @@ class Tour {
 					),
 				);
 			} elseif ( 'draft' === $tour->post_status ) {
-                $tour_steps[0]['title'] .= ' (' . _x( 'Draft', 'post status' ) . ')'; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
-            }
+				$tour_steps[0]['title'] .= ' (' . _x( 'Draft', 'post status' ) . ')'; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+			}
 			$tours[ $tour->ID ] = $tour_steps;
 		}
 

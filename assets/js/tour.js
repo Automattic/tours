@@ -309,11 +309,8 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 			delete tour_plugin.progress[ tourId ];
 			loadTour();
-			pulseToClick = document.querySelector(
-				'.pulse.tour-' + tourId
-			);
+			pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
 			pulseToClick.click();
-
 		}
 	} );
 } );
