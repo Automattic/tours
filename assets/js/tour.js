@@ -46,6 +46,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 					'<br><a href="" class="dismiss-tour">Dismiss the tour';
 			},
 			onHighlighted( element, step, options ) {
+				tour_plugin.progress[ tourId ] = options.state.activeIndex + 1;
 				const xhr = new XMLHttpRequest();
 				xhr.open(
 					'POST',
@@ -145,61 +146,69 @@ document.addEventListener( 'DOMContentLoaded', function () {
 	}
 
 	const loadTour = function () {
+		const styleElement =
+			document.getElementById( 'tour-styles' ) ||
+			document.createElement( 'style' );
+		let style = null;
 		let color1 = '';
 		let color2 = '';
-		const styleElement = document.createElement( 'style' );
 		let startStep;
 
-		document.head.appendChild( styleElement );
-		const style = styleElement.sheet;
+		if ( ! styleElement.id ) {
+			styleElement.id = 'tour-styles';
+			document.head.appendChild( styleElement );
+			style = styleElement.sheet;
+		}
 
 		for ( const tourId in tour_plugin.tours ) {
-			color1 = tour_plugin.tours[ tourId ][ 0 ].color;
-			color2 = tour_plugin.tours[ tourId ][ 0 ].color + 'a0';
-			style.insertRule(
-				'@keyframes animation-' +
-					tourId +
-					' {' +
-					'0% {' +
-					'box-shadow: 0 0 0 0 ' +
-					color2 +
-					';' +
-					'}' +
-					'70% {' +
-					'box-shadow: 0 0 0 10px ' +
-					color1 +
-					'00' +
-					';' +
-					'}' +
-					'100% {' +
-					'box-shadow: 0 0 0 0 ' +
-					color1 +
-					'00' +
-					';' +
-					'}' +
-					'}',
-				style.cssRules.length
-			);
+			if ( style ) {
+				color1 = tour_plugin.tours[ tourId ][ 0 ].color;
+				color2 = tour_plugin.tours[ tourId ][ 0 ].color + 'a0';
+				style.insertRule(
+					'@keyframes animation-' +
+						tourId +
+						' {' +
+						'0% {' +
+						'box-shadow: 0 0 0 0 ' +
+						color2 +
+						';' +
+						'}' +
+						'70% {' +
+						'box-shadow: 0 0 0 10px ' +
+						color1 +
+						'00' +
+						';' +
+						'}' +
+						'100% {' +
+						'box-shadow: 0 0 0 0 ' +
+						color1 +
+						'00' +
+						';' +
+						'}' +
+						'}',
+					style.cssRules.length
+				);
 
-			style.insertRule(
-				'.tour-' +
-					tourId +
-					'{' +
-					'box-shadow: 0 0 0 ' +
-					color2 +
-					';' +
-					'background: ' +
-					color1 +
-					'80' +
-					';' +
-					'-webkit-animation: animation-' +
-					tourId +
-					' 2s infinite;' +
-					'animation: animation-' +
-					tourId +
-					' 2s infinite; }',
-				style.cssRules.length
-			);
+				style.insertRule(
+					'.tour-' +
+						tourId +
+						'{' +
+						'box-shadow: 0 0 0 ' +
+						color2 +
+						';' +
+						'background: ' +
+						color1 +
+						'80' +
+						';' +
+						'-webkit-animation: animation-' +
+						tourId +
+						' 2s infinite;' +
+						'animation: animation-' +
+						tourId +
+						' 2s infinite; }',
+					style.cssRules.length
+				);
+			}
 			startStep = 0;
 			if ( typeof tour_plugin.progress[ tourId ] !== 'undefined' ) {
 				startStep = tour_plugin.progress[ tourId ];
@@ -208,49 +217,72 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		}
 	};
 	loadTour();
-	filter_available_tours_on_page();
-	setTimeout( filter_available_tours_on_masterbar, 500 );
+	filter_available_tours();
+	setTimeout( filter_available_tours, 500 );
 
-	function filter_available_tours_on_page() {
-		const tourListItems = document.querySelectorAll( '.inline-tour-list' );
+	function filter_available_tours() {
+		const tourListItems = document.querySelectorAll( '.tour-list-item' );
 
-		if ( tourListItems ) {
-			for ( let i = 0; i < tourListItems.length; i++ ) {
-				const _tourId = tourListItems[ i ].dataset.tourId;
-				const tourIsPresent =
-					tour_plugin.tours[ _tourId ][ 1 ] &&
-					document.querySelector(
-						tour_plugin.tours[ _tourId ][ 1 ].element
-					)
-						? true
-						: false;
-				if ( ! tourIsPresent ) {
-					document
-						.querySelector(
-							'.inline-tour-list[data-tour-id="' + _tourId + '"]'
-						)
-						.remove();
-				}
+		for ( let i = 0; i < tourListItems.length; i++ ) {
+			let tourId = tourListItems[ i ].dataset.tourId;
+			if (
+				! tourId &&
+				tourListItems[ i ].id.substr( 0, 18 ) === 'wp-admin-bar-tour-'
+			) {
+				tourId = tourListItems[ i ].id.substr( 18 );
 			}
+
+			if ( ! tour_plugin.tours[ tourId ] ) {
+				continue;
+			}
+
+			const tourIsPresent =
+				tour_plugin.tours[ tourId ][ 1 ] &&
+				document.querySelector(
+					tour_plugin.tours[ tourId ][ 1 ].element
+				);
+			document
+				.querySelectorAll(
+					'.tour-list-item[data-tour-id="' +
+						tourId +
+						'"], #wp-admin-bar-tour-' +
+						tourId
+				)
+				.forEach( function ( element ) {
+					element.style.display = tourIsPresent ? 'block' : 'none';
+				} );
+		}
+
+		if ( document.getElementById( 'wp-admin-bar-tour-list-default' ) ) {
+			document
+				.getElementById( 'wp-admin-bar-tour-list-default' )
+				.childNodes.forEach( function ( element ) {
+					if ( element.style.display !== 'none' ) {
+						document.getElementById(
+							'wp-admin-bar-tour-list'
+						).style.display = 'block';
+					}
+				} );
 		}
 	}
 
 	document.addEventListener( 'click', function ( event ) {
-		if (
-			! event.target.matches( '#page-tour-list li a' ) &&
-			! event.target.matches( 'li.admin-bar-tour-item a' )
-		) {
-			return;
+		let target = event.target;
+		if ( target.matches( '.tour-list-item a' ) ) {
+			target = target.parentNode;
+		} else if ( ! target.matches( '.tour-list-item' ) ) {
+			return true;
 		}
 		event.preventDefault();
-		let tourId;
-		if ( event.target.matches( 'li.admin-bar-tour-item a' ) ) {
-			const stringSplit = event.target.parentNode.id.split( '-' );
-			tourId = stringSplit[ stringSplit.length - 1 ];
-		} else {
-			tourId = event.target.getAttribute( 'data-tour-id' );
+
+		let tourId = target.dataset.tourId;
+		if ( ! tourId && target.id.substr( 0, 18 ) === 'wp-admin-bar-tour-' ) {
+			tourId = target.id.substr( 18 );
 		}
 
+		if ( ! tour_plugin.tours[ tourId ] ) {
+			return false;
+		}
 		let pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
 
 		if ( pulseToClick ) {
@@ -278,41 +310,4 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			);
 		}
 	} );
-
-	function filter_available_tours_on_masterbar() {
-		const tourListItems = document.querySelectorAll(
-			'li.admin-bar-tour-item'
-		);
-
-		if ( tourListItems ) {
-			for ( let i = 0; i < tourListItems.length; i++ ) {
-				const stringSplit = tourListItems[ i ].id.split( '-' );
-				const _tourId = stringSplit[ stringSplit.length - 1 ];
-
-				const tourIsPresent =
-					tour_plugin.tours[ _tourId ][ 1 ] &&
-					document.querySelector(
-						tour_plugin.tours[ _tourId ][ 1 ].element
-					)
-						? true
-						: false;
-				if ( ! tourIsPresent ) {
-					document
-						.querySelector( '#wp-admin-bar-tour-' + _tourId )
-						.remove();
-				}
-			}
-		}
-
-		if ( document.getElementById( 'wp-admin-bar-tour-list-default' ) ) {
-			if (
-				document.getElementById( 'wp-admin-bar-tour-list-default' )
-					.children.length > 0
-			) {
-				document.getElementById(
-					'wp-admin-bar-tour-list'
-				).style.display = 'block';
-			}
-		}
-	}
 } );

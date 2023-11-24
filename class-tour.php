@@ -740,7 +740,7 @@ class Tour {
 		}
 		$tour_list = '<ul id="page-tour-list">';
 		foreach ( $tours as $tour_id => $tour ) {
-			$tour_list .= '<li><a class="inline-tour-list" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</a class="page-tour-item"></li>';
+			$tour_list .= '<li><a class="tour-list-item" href="" role="button" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</a></li>';
 		}
 		$tour_list .= '</ul>';
 
@@ -791,7 +791,7 @@ class Tour {
 					'title'  => esc_html( $tour[0]['title'] ),
 					'href'   => '#',
 					'meta'   => array(
-						'class' => 'admin-bar-tour-item',
+						'class' => 'tour-list-item',
 					),
 				)
 			);
