@@ -222,6 +222,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 	function filter_available_tours() {
 		const tourListItems = document.querySelectorAll( '.tour-list-item' );
+		let foundTour = false;
 
 		for ( let i = 0; i < tourListItems.length; i++ ) {
 			let tourId = tourListItems[ i ].dataset.tourId;
@@ -241,6 +242,9 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				document.querySelector(
 					tour_plugin.tours[ tourId ][ 1 ].element
 				);
+			if ( tourIsPresent ) {
+				foundTour = true;
+			}
 			document
 				.querySelectorAll(
 					'.tour-list-item[data-tour-id="' +
@@ -263,6 +267,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
 						).style.display = 'block';
 					}
 				} );
+		}
+
+		if ( foundTour ) {
+			loadTour();
 		}
 	}
 
@@ -292,22 +300,17 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			xhr.open( 'POST', tour_plugin.rest_url + 'tour/v1/save-progress' );
 			xhr.setRequestHeader( 'Content-Type', 'application/json' );
 			xhr.setRequestHeader( 'X-WP-Nonce', tour_plugin.nonce );
-			xhr.onload = function () {
-				if ( xhr.status >= 200 && xhr.status < 300 ) {
-					delete tour_plugin.progress[ tourId ];
-					loadTour();
-					pulseToClick = document.querySelector(
-						'.pulse.tour-' + tourId
-					);
-					pulseToClick.click();
-				}
-			};
 			xhr.send(
 				JSON.stringify( {
 					tour: tourId,
 					step: -1,
 				} )
 			);
+
+			delete tour_plugin.progress[ tourId ];
+			loadTour();
+			pulseToClick = document.querySelector( '.pulse.tour-' + tourId );
+			pulseToClick.click();
 		}
 	} );
 } );

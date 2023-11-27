@@ -618,10 +618,12 @@ class Tour {
 			if ( ! $tour_steps ) {
 				$tour_steps = array(
 					array(
-						'title' => $tour->post_title . ( 'draft' === $tour->post_status ? ' (Draft)' : '' ),
+						'title' => $tour->post_title . ( 'draft' === $tour->post_status ? ' (' . _x( 'Draft', 'post status' ) . ')' : '' ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 						'color' => '#3939c7',
 					),
 				);
+			} elseif ( 'draft' === $tour->post_status ) {
+				$tour_steps[0]['title'] .= ' (' . _x( 'Draft', 'post status' ) . ')'; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 			}
 			$tours[ $tour->ID ] = $tour_steps;
 		}
