@@ -237,7 +237,6 @@ const tourStepSelector = function ( event ) {
 			( tour_plugin.tours[ tourId ].length > 2 ? 's' : '' );
 		document.getElementById( 'tour-title' ).textContent = 'Saved!';
 
-		window.loadTour();
 		setTimeout( function () {
 			document.getElementById( 'tour-title' ).textContent =
 				tour_plugin.tours[ tourId ][ 0 ].title;
