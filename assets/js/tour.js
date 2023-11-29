@@ -24,7 +24,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 		dismissTour = function () {
 			const xhr = new XMLHttpRequest();
-			xhr.open( 'POST', tour_plugin.rest_url + 'tour/v1/save-progress' );
+			xhr.open( 'POST', tour_plugin.rest_save_progress_url );
 			xhr.setRequestHeader( 'Content-Type', 'application/json' );
 			xhr.setRequestHeader( 'X-WP-Nonce', tour_plugin.nonce );
 			xhr.send(
@@ -48,10 +48,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			onHighlighted( element, step, options ) {
 				tour_plugin.progress[ tourId ] = options.state.activeIndex + 1;
 				const xhr = new XMLHttpRequest();
-				xhr.open(
-					'POST',
-					tour_plugin.rest_url + 'tour/v1/save-progress'
-				);
+				xhr.open( 'POST', tour_plugin.rest_save_progress_url );
 				xhr.setRequestHeader( 'Content-Type', 'application/json' );
 				xhr.setRequestHeader( 'X-WP-Nonce', tour_plugin.nonce );
 				xhr.send(
@@ -66,10 +63,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 					addPulse( tourId, options.state.activeIndex + 1 );
 				} else {
 					const xhr = new XMLHttpRequest();
-					xhr.open(
-						'POST',
-						tour_plugin.rest_url + 'tour/v1/save-progress'
-					);
+					xhr.open( 'POST', tour_plugin.rest_save_progress_url );
 					xhr.setRequestHeader( 'Content-Type', 'application/json' );
 					xhr.setRequestHeader( 'X-WP-Nonce', tour_plugin.nonce );
 					xhr.send(
@@ -297,7 +291,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			pulseToClick.click();
 		} else {
 			const xhr = new XMLHttpRequest();
-			xhr.open( 'POST', tour_plugin.rest_url + 'tour/v1/save-progress' );
+			xhr.open( 'POST', tour_plugin.rest_save_progress_url );
 			xhr.setRequestHeader( 'Content-Type', 'application/json' );
 			xhr.setRequestHeader( 'X-WP-Nonce', tour_plugin.nonce );
 			xhr.send(

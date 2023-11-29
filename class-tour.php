@@ -60,10 +60,12 @@ class Tour {
 			'tour',
 			'tour_plugin',
 			array(
-				'tours'    => $tours,
-				'nonce'    => wp_create_nonce( 'wp_rest' ),
-				'rest_url' => rest_url(),
-				'progress' => get_user_option( 'tour-progress', get_current_user_id() ),
+				'tours'                   => $tours,
+				'nonce'                   => wp_create_nonce( 'wp_rest' ),
+				'rest_save_progress_url'  => rest_url( 'tour/v1/save-progress' ),
+				'rest_report_missing_url' => rest_url( 'tour/v1/report-missing' ),
+				'rest_save_url'           => rest_url( 'tour/v1/save' ),
+				'progress'                => get_user_option( 'tour-progress', get_current_user_id() ),
 			)
 		);
 
@@ -712,7 +714,7 @@ class Tour {
 		event.preventDefault();
 
 		var xhr = new XMLHttpRequest();
-		xhr.open('POST', tour_plugin.rest_url + 'tour/v1/save-progress');
+		xhr.open('POST', tour_plugin.rest_save_progress_url );
 		xhr.setRequestHeader('Content-Type', 'application/json');
 		xhr.setRequestHeader('X-WP-Nonce', tour_plugin.nonce);
 		xhr.send(JSON.stringify({
