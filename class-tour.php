@@ -618,12 +618,13 @@ class Tour {
 			if ( ! $tour_steps ) {
 				$tour_steps = array(
 					array(
-						'title' => $tour->post_title . ( 'draft' === $tour->post_status ? ' (' . _x( 'Draft', 'post status' ) . ')' : '' ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
-						'color' => '#3939c7',
+						'title'  => $tour->post_title,
+						'append' => 'draft' === $tour->post_status ? ' (' . _x( 'Draft', 'post status' ) . ')' : '', // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+						'color'  => '#3939c7',
 					),
 				);
 			} elseif ( 'draft' === $tour->post_status ) {
-				$tour_steps[0]['title'] .= ' (' . _x( 'Draft', 'post status' ) . ')'; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
+				$tour_steps[0]['append'] = ' (' . _x( 'Draft', 'post status' ) . ')'; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 			}
 			$tours[ $tour->ID ] = $tour_steps;
 		}
@@ -742,7 +743,7 @@ class Tour {
 		}
 		$tour_list = '<ul id="page-tour-list">';
 		foreach ( $tours as $tour_id => $tour ) {
-			$tour_list .= '<li><a class="tour-list-item" href="" role="button" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] ) . '</a></li>';
+			$tour_list .= '<li><a class="tour-list-item" href="" role="button" data-tour-id="' . esc_attr( $tour_id ) . '">' . esc_html( $tour[0]['title'] . ( isset( $tour[0]['append'] ) ? $tour[0]['append'] : '' ) ) . '</a></li>';
 		}
 		$tour_list .= '</ul>';
 
@@ -790,7 +791,7 @@ class Tour {
 				array(
 					'parent' => 'tour-list',
 					'id'     => 'tour-' . esc_html( $tour_id ),
-					'title'  => esc_html( $tour[0]['title'] ),
+					'title'  => esc_html( $tour[0]['title'] . ( isset( $tour[0]['append'] ) ? $tour[0]['append'] : '' ) ),
 					'href'   => '#',
 					'meta'   => array(
 						'class' => 'tour-list-item',
