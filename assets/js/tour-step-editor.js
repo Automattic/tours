@@ -76,7 +76,9 @@ function enableTourCreation() {
 	}
 }
 document.addEventListener( 'DOMContentLoaded', function () {
-	document.getElementById( 'tour-launcher' ).addEventListener( 'click', toggleTourSelector );
+	document
+		.getElementById( 'tour-launcher' )
+		.addEventListener( 'click', toggleTourSelector );
 	enableTourCreation();
 } );
 
