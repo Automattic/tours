@@ -26,7 +26,7 @@ class Tour {
 		add_action( 'admin_init', array( $class, 'admin_init' ) );
 		add_action( 'edit_form_after_editor', array( $class, 'edit_form_after_editor' ) );
 		add_filter( 'tour_list', array( $class, 'tour_list' ) );
-		add_shortcode( 'tour_button', array( $class, 'show_tour_list' ) );
+		add_shortcode( 'tour_list', array( $class, 'show_tour_list' ) );
 		add_action( 'admin_menu', array( $class, 'add_admin_menu' ) );
 		add_action( 'wp_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'admin_footer', array( $class, 'output_tour_button' ) );
