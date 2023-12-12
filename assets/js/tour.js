@@ -208,6 +208,17 @@ document.addEventListener( 'DOMContentLoaded', function () {
 						' 2s infinite; }',
 					style.cssRules.length
 				);
+
+				style.insertRule(
+					'@media (prefers-reduced-motion: reduce) {' +
+						'.tour-' +
+						tourId +
+						'{' +
+						'box-shadow: none !important;' +
+						'}' +
+						'}',
+					style.cssRules.length
+				);
 			}
 			startStep = 0;
 			if ( typeof tour_plugin.progress[ tourId ] !== 'undefined' ) {
