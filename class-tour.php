@@ -328,8 +328,8 @@ class Tour {
 
 		$tour = array(
 			array(
-				'color' => sanitize_text_field( $_POST['color'] ),
-				'title' => $data['post_title'],
+				'color'             => sanitize_text_field( $_POST['color'] ),
+				'title'             => $data['post_title'],
 				'tour_restrict_url' => esc_url_raw( $_POST['tour_restrict_url'] ),
 			),
 		);
@@ -420,11 +420,11 @@ class Tour {
 
 		$tour = self::json_decode( $post->post_content );
 		if ( ! $tour ) {
-			$color = '#3939c7';
-			$tour  = array();
+			$color    = '#3939c7';
+			$tour     = array();
 			$tour_url = '';
 		} else {
-			$color = $tour[0]['color'];
+			$color    = $tour[0]['color'];
 			$tour_url = $tour[0]['tour_restrict_url'];
 			array_shift( $tour );
 		}
