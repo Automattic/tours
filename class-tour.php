@@ -330,6 +330,7 @@ class Tour {
 			array(
 				'color' => sanitize_text_field( $_POST['color'] ),
 				'title' => $data['post_title'],
+				'tour_restrict_url' => esc_url_raw( $_POST['tour_restrict_url'] ),
 			),
 		);
 
@@ -421,8 +422,10 @@ class Tour {
 		if ( ! $tour ) {
 			$color = '#3939c7';
 			$tour  = array();
+			$tour_url = '';
 		} else {
 			$color = $tour[0]['color'];
+			$tour_url = $tour[0]['tour_restrict_url'];
 			array_shift( $tour );
 		}
 
@@ -435,6 +438,18 @@ class Tour {
 					<input type="color" name="color" id="tour_color" value="<?php echo esc_attr( $color ); ?>" />
 				</td>
 			</tr>
+		</table>
+	</div>
+	<div id="tour-url">
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th scope="row"><label><?php esc_html_e( 'URL', 'tour' ); ?></label><br></th>
+					<td>
+						<input type="url" name="tour_restrict_url" id="tour_restrict_url" class="regular-text" value="<?php echo esc_url( $tour_url ); ?>"/>
+					</td>
+				</tr>
+			</tbody>
 		</table>
 	</div>
 	<div id="steps">
