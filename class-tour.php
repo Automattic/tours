@@ -44,10 +44,18 @@ class Tour {
 		}
 		$once = true;
 
-		$tours = apply_filters( 'tour_list', array() );
-		if ( empty( $tours ) ) {
+		$_tours = apply_filters( 'tour_list', array() );
+		if ( empty( $_tours ) ) {
 			return;
 		}
+		$tours = array_filter(
+			$_tours,
+			function ( $tour ) {
+				$current_url = esc_url( home_url( $_SERVER['REQUEST_URI'] ) );
+				$tour_url    = $tour[0]['tour_restrict_url'] ? $tour[0]['tour_restrict_url'] : '';
+				return ( ! $tour_url || ( $current_url === $tour_url ) );
+			}
+		);
 
 		wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
 		wp_register_style( 'tour-css', plugins_url( 'assets/css/style.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/style.css' ) );
