@@ -51,9 +51,13 @@ class Tour {
 		$tours = array_filter(
 			$_tours,
 			function ( $tour ) {
-				$current_url = esc_url( home_url( $_SERVER['REQUEST_URI'] ) );
-				$tour_url    = $tour[0]['tour_restrict_url'] ? $tour[0]['tour_restrict_url'] : '';
-				return ( ! $tour_url || ( $current_url === $tour_url ) );
+				if ( empty( $tour[0]['tour_restrict_url'] ) {
+				    return true;
+				}
+				if ( preg_match( '/' . preg_quote( $tour[0]['tour_restrict_url'], '/' ) . '/', $_SERVER['REQUEST_URI'] ) { 
+					return true;
+				}
+				return false;
 			}
 		);
 
