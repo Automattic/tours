@@ -54,7 +54,7 @@ class Tour {
 				if ( empty( $tour[0]['tour_restrict_url'] ) ) {
 				    return true;
 				}
-				if ( preg_match( '/' . preg_quote( $tour[0]['tour_restrict_url'], '/' ) . '/', $_SERVER['REQUEST_URI'] ) ) { 
+				if ( preg_match( '/' . str_replace( '/', '\\/', $tour[0]['tour_restrict_url'] ) . '/', $_SERVER['REQUEST_URI'] ) ) { 
 					return true;
 				}
 				return false;
