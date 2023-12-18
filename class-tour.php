@@ -51,10 +51,10 @@ class Tour {
 		$tours = array_filter(
 			$_tours,
 			function ( $tour ) {
-				if ( empty( $tour[0]['tour_restrict_url'] ) {
+				if ( empty( $tour[0]['tour_restrict_url'] ) ) {
 				    return true;
 				}
-				if ( preg_match( '/' . preg_quote( $tour[0]['tour_restrict_url'], '/' ) . '/', $_SERVER['REQUEST_URI'] ) { 
+				if ( preg_match( '/' . preg_quote( $tour[0]['tour_restrict_url'], '/' ) . '/', $_SERVER['REQUEST_URI'] ) ) { 
 					return true;
 				}
 				return false;
