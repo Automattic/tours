@@ -459,7 +459,7 @@ class Tour {
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th scope="row"><label><?php esc_html_e( 'URL', 'tour' ); ?></label><br></th>
+					<th scope="row"><label><?php esc_html_e( 'Restrict Tour to URL', 'tour' ); ?></label><br></th>
 					<td>
 						<input type="url" name="tour_restrict_url" id="tour_restrict_url" class="regular-text" value="<?php echo esc_url( $tour_url ); ?>"/>
 					</td>
