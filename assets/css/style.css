@@ -6,6 +6,40 @@
 	height: 12px;
 	margin: -6px;
 }
+@keyframes animation-bright-pulse {
+	0% {
+		box-shadow: 0 0 0 0 #ffffffa0;
+	}
+	70% {
+		box-shadow: 0 0 0 10px #ffffff00;
+	}
+	100% {
+		box-shadow: 0 0 0 0 #ffffff00;
+	}
+}
+.pulse.bright-pulse {
+	box-shadow: 0 0 0 #ffffffa0;
+	background: #ffffff80;
+	-webkit-animation: animation-bright-pulse 2s infinite;
+	animation: animation-bright-pulse 2s infinite;
+}
+@keyframes animation-dark-pulse {
+	0% {
+		box-shadow: 0 0 0 0 #000000a0;
+	}
+	70% {
+		box-shadow: 0 0 0 10px #00000000;
+	}
+	100% {
+		box-shadow: 0 0 0 0 #00000000;
+	}
+}
+.pulse.dark-pulse {
+	box-shadow: 0 0 0 #000000a0;
+	background: #00000080;
+	-webkit-animation: animation-dark-pulse 2s infinite;
+	animation: animation-dark-pulse 2s infinite;
+}
 #tour-launcher {
 	position: fixed;
 	bottom: 76px;
