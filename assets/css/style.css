@@ -1,5 +1,8 @@
 .pulse {
+	all: unset;
 	border-radius: 50%;
+	border: 0;
+	display: block;
 	position: absolute;
 	cursor: pointer;
 	width: 12px;

@@ -3,14 +3,7 @@
 
 document.addEventListener( 'DOMContentLoaded', function () {
 	let dismissTour;
-	document.addEventListener('keypress', function(event) {
-		if (event.key === 'Enter') {
-		  return pulseClick( event );
-		}
-	} );
-
-	document.addEventListener( 'click', pulseClick );
-	function pulseClick( event ) {
+	document.addEventListener( 'click', function( event ) {
 		if ( ! event.target.matches( '.pulse' ) ) {
 			return;
 		}
@@ -138,11 +131,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			}
 
 			if ( ! wrapper.querySelector( '.pulse' ) ) {
-				const pulse = document.createElement( 'div' );
+				const pulse = document.createElement( 'button' );
 				pulse.classList.add( 'pulse' );
 				pulse.classList.add( 'tour-' + tourId );
 				pulse.dataset.tourId = tourId;
-				pulse.setAttribute( 'tabindex', 0 );
 				pulse.dataset.tourTitle =
 					tour_plugin.tours[ tourId ][ 0 ].title;
 				if ( field.hasChildNodes() ) {
