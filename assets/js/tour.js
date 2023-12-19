@@ -3,7 +3,7 @@
 
 document.addEventListener( 'DOMContentLoaded', function () {
 	let dismissTour;
-	document.addEventListener( 'click', function( event ) {
+	document.addEventListener( 'click', function ( event ) {
 		if ( ! event.target.matches( '.pulse' ) ) {
 			return;
 		}
@@ -85,7 +85,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		driverObj.drive( startStep );
 		const pulse = tourSteps[ startStep ].element.querySelector( '.pulse' );
 		pulse.parentNode.removeChild( pulse );
-	}
+	} );
 
 	document.addEventListener( 'click', function ( event ) {
 		if ( ! event.target.matches( '.dismiss-tour' ) ) {
