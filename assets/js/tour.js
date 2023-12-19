@@ -3,7 +3,14 @@
 
 document.addEventListener( 'DOMContentLoaded', function () {
 	let dismissTour;
-	document.addEventListener( 'click', function ( event ) {
+	document.addEventListener('keypress', function(event) {
+		if (event.key === 'Enter') {
+		  return pulseClick( event );
+		}
+	} );
+
+	document.addEventListener( 'click', pulseClick );
+	function pulseClick( event ) {
 		if ( ! event.target.matches( '.pulse' ) ) {
 			return;
 		}
@@ -85,7 +92,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		driverObj.drive( startStep );
 		const pulse = tourSteps[ startStep ].element.querySelector( '.pulse' );
 		pulse.parentNode.removeChild( pulse );
-	} );
+	}
 
 	document.addEventListener( 'click', function ( event ) {
 		if ( ! event.target.matches( '.dismiss-tour' ) ) {
@@ -129,11 +136,13 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				}
 				wrapper.classList.add( 'pulse-wrapper' );
 			}
+
 			if ( ! wrapper.querySelector( '.pulse' ) ) {
 				const pulse = document.createElement( 'div' );
 				pulse.classList.add( 'pulse' );
 				pulse.classList.add( 'tour-' + tourId );
 				pulse.dataset.tourId = tourId;
+				pulse.setAttribute( 'tabindex', 0 );
 				pulse.dataset.tourTitle =
 					tour_plugin.tours[ tourId ][ 0 ].title;
 				if ( field.hasChildNodes() ) {

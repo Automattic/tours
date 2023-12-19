@@ -6,6 +6,10 @@
 	height: 12px;
 	margin: -6px;
 }
+.pulse:focus {
+	outline: dotted;
+	outline-width: 1px;
+}
 #tour-launcher {
 	position: fixed;
 	bottom: 76px;
@@ -49,4 +53,9 @@ ul#page-tour-list li a {
     color: #1067a9;
     text-decoration: underline;
 	cursor: pointer;
+	box-shadow: none;
+}
+.dismiss-tour:hover {
+	background: none;
+	box-shadow: none;
 }
