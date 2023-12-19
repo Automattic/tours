@@ -49,11 +49,13 @@ ul#page-tour-list li a {
 }
 .dismiss-tour {
 	background: none;
-    border: none;
-    color: #1067a9;
-    text-decoration: underline;
+	border: none;
+	color: #1067a9;
+	text-decoration: underline;
 	cursor: pointer;
 	box-shadow: none;
+	padding: 0;
+	font-size: inherit;
 }
 .dismiss-tour:hover {
 	background: none;
