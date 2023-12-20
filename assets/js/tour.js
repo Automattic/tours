@@ -258,7 +258,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		];
 	}
 	function ensureContrast( foregroundColor, backgroundColor, threshold = 3 ) {
-		let contrastRatio = getContrastRatio( foregroundColor, backgroundColor );
+		let contrastRatio = getContrastRatio(
+			foregroundColor,
+			backgroundColor
+		);
 
 		if ( contrastRatio >= threshold ) {
 			return foregroundColor;
@@ -283,7 +286,10 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				hslToRgb( hslValues[ 0 ], hslValues[ 1 ], newLightness )
 			);
 
-			contrastRatio = getContrastRatio( foregroundColor, backgroundColor );
+			contrastRatio = getContrastRatio(
+				foregroundColor,
+				backgroundColor
+			);
 		}
 
 		return foregroundColor;
@@ -310,7 +316,6 @@ document.addEventListener( 'DOMContentLoaded', function () {
 	}
 
 	const getAnimationClassName = function ( color ) {
-
 		const styleElement =
 			document.getElementById( 'tour-styles' ) ||
 			document.createElement( 'style' );
