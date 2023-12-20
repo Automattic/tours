@@ -51,13 +51,16 @@ class Tour {
 		$tours = array_filter(
 			$_tours,
 			function ( $tour ) {
-				$url_pattern = '#/wp-admin/post\.php\?post=#';
-
+				$restrict_url = $tour[0]['tour_restrict_url'];
+				$url_pattern  = '#/wp-admin/post\.php\?post=#';
 				if ( empty( $tour[0]['tour_restrict_url'] ) || preg_match( $url_pattern, $_SERVER['REQUEST_URI'] ) ) {
 					return true;
 				}
+				if ( ! preg_match( '#^/.*$#', $restrict_url ) ) {
+					$restrict_url = preg_replace( '#^https?://(www\.)?[^/]+#', '', $restrict_url );
+				}
 
-				if ( preg_match( '/' . str_replace( '/', '\\/', $tour[0]['tour_restrict_url'] ) . '/', $_SERVER['REQUEST_URI'] ) ) {
+				if ( preg_match( '/' . str_replace( '/', '\\/', $restrict_url ) . '/', $_SERVER['REQUEST_URI'] ) ) {
 					return true;
 				}
 				return false;
