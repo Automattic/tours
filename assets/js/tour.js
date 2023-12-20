@@ -1,114 +1,6 @@
 /* global tour_plugin, XMLHttpRequest */
 /* eslint camelcase: "off" */
 
-function rgbToHex( color ) {
-	const rgbValues = color.match(
-		/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*\d+)?\)$/i
-	);
-
-	if ( rgbValues && rgbValues.length === 4 ) {
-		const hexValues = rgbValues
-			.slice( 1 )
-			.map( ( val ) =>
-				parseInt( val, 10 ).toString( 16 ).padStart( 2, '0' )
-			);
-		return '#' + hexValues.join( '' );
-	}
-
-	return color;
-}
-function getComputedBackgroundColor( element ) {
-	while ( element ) {
-		const color = window.getComputedStyle( element ).backgroundColor;
-		if ( 'rgba( 0, 0, 0, 0 )' === color ) {
-			element = element.parentNode;
-			continue;
-		}
-		return rgbToHex( color );
-	}
-
-	return null;
-}
-
-function getRelativeLuminance( color ) {
-	const rgb = color.substring( 1 ); // Remove the leading #
-	const r = parseInt( rgb.substring( 0, 2 ), 16 ) / 255;
-	const g = parseInt( rgb.substring( 2, 4 ), 16 ) / 255;
-	const b = parseInt( rgb.substring( 4, 6 ), 16 ) / 255;
-	console.log( { color, r, g, b } );
-	const sRGB = [ r, g, b ].map( ( c ) => {
-		return c <= 0.03928
-			? c / 12.92
-			: Math.pow( ( c + 0.055 ) / 1.055, 2.4 );
-	} );
-
-	return 0.2126 * sRGB[ 0 ] + 0.7152 * sRGB[ 1 ] + 0.0722 * sRGB[ 2 ];
-}
-
-function getContrastRatio( color1, color2 ) {
-	const luminance1 = getRelativeLuminance( color1 );
-	const luminance2 = getRelativeLuminance( color2 );
-	return (
-		( Math.max( luminance1, luminance2 ) + 0.05 ) /
-		( Math.min( luminance1, luminance2 ) + 0.05 )
-	);
-}
-function getContrastingColor( background, contrast, luminance ) {
-	// Convert luminance to a valid RGB value between 0 and 255
-	const luminanceValue = Math.round( luminance * 255 );
-
-	// Attempt to increase or decrease the luminance to find a contrasting color
-	for ( let delta = 1; delta <= 255; delta++ ) {
-		const adjustedLuminance1 = luminanceValue + delta;
-		const adjustedLuminance2 = luminanceValue - delta;
-
-		const color1 = `#${ adjustedLuminance1
-			.toString( 16 )
-			.padStart( 2, '0' )
-			.repeat( 3 ) }`;
-		const color2 = `#${ adjustedLuminance2
-			.toString( 16 )
-			.padStart( 2, '0' )
-			.repeat( 3 ) }`;
-
-		const contrast1 = getContrastRatio( background, color1 );
-		const contrast2 = getContrastRatio( background, color2 );
-
-		if (
-			Math.abs( contrast1 - contrast ) < Math.abs( contrast2 - contrast )
-		) {
-			return color1;
-		}
-		return color2;
-	}
-}
-
-function getPulseColorOverride( background, color ) {
-	if ( getContrastRatio( background, color ) > 13 ) {
-		return color;
-	}
-
-	const luminance = getRelativeLuminance( background );
-	const blackLuminance = getRelativeLuminance( '#000000' ); // black
-	const blackContrast =
-		( Math.max( luminance, blackLuminance ) + 0.05 ) /
-		( Math.min( luminance, blackLuminance ) + 0.05 );
-
-	const whiteLuminance = getRelativeLuminance( '#FFFFFF' ); // white
-	const whiteContrast =
-		( Math.max( luminance, whiteLuminance ) + 0.05 ) /
-		( Math.min( luminance, whiteLuminance ) + 0.05 );
-
-	if ( blackContrast >= 4.5 ) {
-		return 'dark-pulse';
-	}
-
-	if ( whiteContrast >= 4.5 ) {
-		return 'bright-pulse';
-	}
-
-	return null;
-}
 document.addEventListener( 'DOMContentLoaded', function () {
 	let dismissTour;
 	document.addEventListener( 'click', function ( event ) {
@@ -237,17 +129,16 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				}
 				wrapper.classList.add( 'pulse-wrapper' );
 			}
-			console.log(
-				'getComputedBackgroundColor( wrapper )',
-				getComputedBackgroundColor( wrapper )
-			);
 			if ( ! wrapper.querySelector( '.pulse' ) ) {
 				const pulse = document.createElement( 'div' );
 				pulse.classList.add( 'pulse' );
 				pulse.classList.add(
-					getPulseColorOverride(
-						getComputedBackgroundColor( wrapper ),
-						tour_plugin.tours[ tourId ][ 0 ].color
+					getAnimationClassName(
+						ensureContrast(
+							tour_plugin.tours[ tourId ][ 0 ].color,
+							getComputedBackgroundColor( wrapper ),
+							3
+						)
 					)
 				);
 				pulse.classList.add( 'tour-' + tourId );
@@ -263,13 +154,230 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		}
 	}
 
+	function rgbToHex( rgb ) {
+		return (
+			'#' +
+			rgb
+				.map( ( value ) => value.toString( 16 ).padStart( 2, '0' ) )
+				.join( '' )
+		);
+	}
+
+	function getContrastRatio( color1, color2 ) {
+		const luminance1 = calculateLuminance( color1 );
+		const luminance2 = calculateLuminance( color2 );
+		const lighter = Math.max( luminance1, luminance2 );
+		const darker = Math.min( luminance1, luminance2 );
+		return ( lighter + 0.05 ) / ( darker + 0.05 );
+	}
+
+	function calculateLuminance( color ) {
+		const rgb = hexToRgb( color );
+		const [ r, g, b ] = rgb.map( ( value ) => {
+			value /= 255;
+			return value <= 0.03928
+				? value / 12.92
+				: Math.pow( ( value + 0.055 ) / 1.055, 2.4 );
+		} );
+		return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+	}
+
+	function hexToRgb( hex ) {
+		const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+		hex = hex.replace(
+			shorthandRegex,
+			( _, r, g, b ) => r + r + g + g + b + b
+		);
+		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec( hex );
+		return result
+			? [
+					parseInt( result[ 1 ], 16 ),
+					parseInt( result[ 2 ], 16 ),
+					parseInt( result[ 3 ], 16 ),
+			  ]
+			: null;
+	}
+
+	function rgbToHsl( r, g, b ) {
+		r /= 255;
+		g /= 255;
+		b /= 255;
+		const max = Math.max( r, g, b ),
+			min = Math.min( r, g, b );
+		let h, s;
+		const l = ( max + min ) / 2;
+
+		if ( max === min ) {
+			h = s = 0; // achromatic
+		} else {
+			const d = max - min;
+			s = l > 0.5 ? d / ( 2 - max - min ) : d / ( max + min );
+			switch ( max ) {
+				case r:
+					h = ( g - b ) / d + ( g < b ? 6 : 0 );
+					break;
+				case g:
+					h = ( b - r ) / d + 2;
+					break;
+				case b:
+					h = ( r - g ) / d + 4;
+					break;
+			}
+			h /= 6;
+		}
+
+		return [ h, s, l ];
+	}
+
+	function hslToRgb( h, s, l ) {
+		let r, g, b;
+
+		if ( s === 0 ) {
+			r = g = b = l; // achromatic
+		} else {
+			const hue2rgb = ( p, q, t ) => {
+				if ( t < 0 ) t += 1;
+				if ( t > 1 ) t -= 1;
+				if ( t < 1 / 6 ) return p + ( q - p ) * 6 * t;
+				if ( t < 1 / 2 ) return q;
+				if ( t < 2 / 3 ) return p + ( q - p ) * ( 2 / 3 - t ) * 6;
+				return p;
+			};
+
+			const q = l < 0.5 ? l * ( 1 + s ) : l + s - l * s;
+			const p = 2 * l - q;
+			r = hue2rgb( p, q, h + 1 / 3 );
+			g = hue2rgb( p, q, h );
+			b = hue2rgb( p, q, h - 1 / 3 );
+		}
+
+		return [
+			Math.round( r * 255 ),
+			Math.round( g * 255 ),
+			Math.round( b * 255 ),
+		];
+	}
+	function ensureContrast( foregroundColor, backgroundColor, threshold = 3 ) {
+		let contrastRatio = getContrastRatio( foregroundColor, backgroundColor );
+
+		if ( contrastRatio >= threshold ) {
+			return foregroundColor;
+		}
+
+		const hslValues = rgbToHsl( ...hexToRgb( foregroundColor ) );
+
+		const backgroundLuminance = calculateLuminance( backgroundColor );
+
+		// Determine whether to increase or decrease the lightness based on background luminance
+		const lightnessChange = backgroundLuminance < 0.5 ? 0.01 : -0.01;
+		let newLightness = hslValues[ 2 ];
+
+		// Adjust the lightness until the desired contrast ratio is met
+		while ( contrastRatio < threshold ) {
+			newLightness += lightnessChange;
+
+			// Limit the lightness between 0 and 1
+			newLightness = Math.max( 0, Math.min( 1, newLightness ) );
+
+			foregroundColor = rgbToHex(
+				hslToRgb( hslValues[ 0 ], hslValues[ 1 ], newLightness )
+			);
+
+			contrastRatio = getContrastRatio( foregroundColor, backgroundColor );
+		}
+
+		return foregroundColor;
+	}
+
+	function getComputedBackgroundColor( element ) {
+		while ( element ) {
+			const color = window.getComputedStyle( element ).backgroundColor;
+			if ( 'rgba(0, 0, 0, 0)' === color ) {
+				element = element.parentNode;
+				continue;
+			}
+			const rgbValues = color.match( /\d+/g );
+			if ( rgbValues.length === 3 ) {
+				return rgbToHex(
+					rgbValues.map( ( value ) => parseInt( value, 10 ) )
+				);
+			}
+
+			return null;
+		}
+
+		return null;
+	}
+
+	const getAnimationClassName = function ( color ) {
+
+		const styleElement =
+			document.getElementById( 'tour-styles' ) ||
+			document.createElement( 'style' );
+		let style = null;
+		const className = 'tour-color-' + color.substr( 1 );
+		const color1 = color;
+		const color2 = color + 'a0';
+
+		if ( ! styleElement.id ) {
+			styleElement.id = 'tour-styles';
+			document.head.appendChild( styleElement );
+		}
+		style = styleElement.sheet;
+
+		style.insertRule(
+			'@keyframes animation-' +
+				className +
+				' {' +
+				'0% {' +
+				'box-shadow: 0 0 0 0 ' +
+				color2 +
+				';' +
+				'}' +
+				'70% {' +
+				'box-shadow: 0 0 0 10px ' +
+				color1 +
+				'00' +
+				';' +
+				'}' +
+				'100% {' +
+				'box-shadow: 0 0 0 0 ' +
+				color1 +
+				'00' +
+				';' +
+				'}' +
+				'}',
+			style.cssRules.length
+		);
+
+		style.insertRule(
+			'.' +
+				className +
+				'{' +
+				'box-shadow: 0 0 0 ' +
+				color2 +
+				';' +
+				'background: ' +
+				color1 +
+				'ff' +
+				';' +
+				'-webkit-animation: animation-' +
+				className +
+				' 2s infinite;' +
+				'animation: animation-' +
+				className +
+				' 2s infinite; }',
+			style.cssRules.length
+		);
+
+		return className;
+	};
+
 	const loadTour = function () {
 		const styleElement =
 			document.getElementById( 'tour-styles' ) ||
 			document.createElement( 'style' );
 		let style = null;
-		let color1 = '';
-		let color2 = '';
 		let startStep;
 
 		if ( ! styleElement.id ) {
@@ -280,53 +388,6 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 		for ( const tourId in tour_plugin.tours ) {
 			if ( style ) {
-				color1 = tour_plugin.tours[ tourId ][ 0 ].color;
-				color2 = tour_plugin.tours[ tourId ][ 0 ].color + 'a0';
-				style.insertRule(
-					'@keyframes animation-' +
-						tourId +
-						' {' +
-						'0% {' +
-						'box-shadow: 0 0 0 0 ' +
-						color2 +
-						';' +
-						'}' +
-						'70% {' +
-						'box-shadow: 0 0 0 10px ' +
-						color1 +
-						'00' +
-						';' +
-						'}' +
-						'100% {' +
-						'box-shadow: 0 0 0 0 ' +
-						color1 +
-						'00' +
-						';' +
-						'}' +
-						'}',
-					style.cssRules.length
-				);
-
-				style.insertRule(
-					'.tour-' +
-						tourId +
-						'{' +
-						'box-shadow: 0 0 0 ' +
-						color2 +
-						';' +
-						'background: ' +
-						color1 +
-						'ff' +
-						';' +
-						'-webkit-animation: animation-' +
-						tourId +
-						' 2s infinite;' +
-						'animation: animation-' +
-						tourId +
-						' 2s infinite; }',
-					style.cssRules.length
-				);
-
 				style.insertRule(
 					'@media (prefers-reduced-motion: reduce) {' +
 						'.tour-' +
