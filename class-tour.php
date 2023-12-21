@@ -51,8 +51,8 @@ class Tour {
 		$tours = array_filter(
 			$_tours,
 			function ( $tour ) {
-				$restrict_url = $tour[0]['tour_restrict_url'];
-				$create_tour_url_pattern  = '#/wp-admin/post\.php\?post=#';
+				$restrict_url            = $tour[0]['tour_restrict_url'];
+				$create_tour_url_pattern = '#/wp-admin/post\.php\?post=#';
 				if ( empty( $tour[0]['tour_restrict_url'] ) || preg_match( $create_tour_url_pattern, $_SERVER['REQUEST_URI'] ) ) {
 					return true;
 				}
