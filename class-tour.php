@@ -56,8 +56,8 @@ class Tour {
 				}
 				$restrict_url = esc_url( $tour[0]['tour_restrict_url'] );
 
-				$create_tour_url = '/wp-admin/post.php?post=' . esc_html( $post_id ) . '&action=edit';
-				if ( $_SERVER['REQUEST_URI'] === $create_tour_url ) {
+				$create_tour_url = admin_url( 'post.php?post=' . esc_html( $post_id ) . '&action=edit' );
+				if ( strpos( $create_tour_url, $_SERVER['REQUEST_URI'] ) !== false ) {
 					return true;
 				}
 
