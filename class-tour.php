@@ -50,18 +50,24 @@ class Tour {
 		}
 		$tours = array_filter(
 			$_tours,
-			function ( $tour ) {
-				$restrict_url            = $tour[0]['tour_restrict_url'];
-				$create_tour_url_pattern = '#/wp-admin/post\.php\?post=#';
-				if ( empty( $tour[0]['tour_restrict_url'] ) || preg_match( $create_tour_url_pattern, $_SERVER['REQUEST_URI'] ) ) {
+			function ( $tour, $post_id ) {
+				if ( ! isset( $tour[0]['tour_restrict_url'] ) || empty( $tour[0]['tour_restrict_url'] ) ) {
 					return true;
 				}
+				$restrict_url = esc_url( $tour[0]['tour_restrict_url'] );
+
+				$create_tour_url = '/wp-admin/post.php?post=' . esc_html( $post_id ) . '&action=edit';
+				if ( $_SERVER['REQUEST_URI'] === $create_tour_url ) {
+					return true;
+				}
+
 				$path_to_find = wp_parse_url( $restrict_url, PHP_URL_PATH );
 				if ( $path_to_find && strpos( $_SERVER['REQUEST_URI'], $path_to_find ) !== false ) {
 					return true;
 				}
 				return false;
-			}
+			},
+			ARRAY_FILTER_USE_BOTH
 		);
 
 		wp_register_style( 'driver-js', plugins_url( 'assets/css/driver-js.css', __FILE__ ), array(), filemtime( __DIR__ . '/assets/css/driver-js.css' ) );
@@ -345,7 +351,7 @@ class Tour {
 			array(
 				'color'             => sanitize_text_field( $_POST['color'] ),
 				'title'             => $data['post_title'],
-				'tour_restrict_url' => esc_url_raw( $_POST['tour_restrict_url'] ),
+				'tour_restrict_url' => ! empty( $_POST['tour_restrict_url'] ) ? esc_url_raw( $_POST['tour_restrict_url'] ) : '',
 			),
 		);
 
@@ -440,7 +446,7 @@ class Tour {
 			$tour_url = '';
 		} else {
 			$color    = $tour[0]['color'];
-			$tour_url = $tour[0]['tour_restrict_url'];
+			$tour_url = esc_url( $tour[0]['tour_restrict_url'] );
 			array_shift( $tour );
 		}
 
