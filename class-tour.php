@@ -52,15 +52,12 @@ class Tour {
 			$_tours,
 			function ( $tour ) {
 				$restrict_url = $tour[0]['tour_restrict_url'];
-				$url_pattern  = '#/wp-admin/post\.php\?post=#';
-				if ( empty( $tour[0]['tour_restrict_url'] ) || preg_match( $url_pattern, $_SERVER['REQUEST_URI'] ) ) {
+				$create_tour_url_pattern  = '#/wp-admin/post\.php\?post=#';
+				if ( empty( $tour[0]['tour_restrict_url'] ) || preg_match( $create_tour_url_pattern, $_SERVER['REQUEST_URI'] ) ) {
 					return true;
 				}
-				if ( ! preg_match( '#^/.*$#', $restrict_url ) ) {
-					$restrict_url = preg_replace( '#^https?://(www\.)?[^/]+#', '', $restrict_url );
-				}
-
-				if ( preg_match( '/' . str_replace( '/', '\\/', $restrict_url ) . '/', $_SERVER['REQUEST_URI'] ) ) {
+				$path_to_find = wp_parse_url( $restrict_url, PHP_URL_PATH );
+				if ( $path_to_find && strpos( $_SERVER['REQUEST_URI'], $path_to_find ) !== false ) {
 					return true;
 				}
 				return false;
