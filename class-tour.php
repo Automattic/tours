@@ -54,13 +54,13 @@ class Tour {
 				if ( ! isset( $tour[0]['tour_restrict_url'] ) || empty( $tour[0]['tour_restrict_url'] ) ) {
 					return true;
 				}
-				$restrict_url = esc_url( $tour[0]['tour_restrict_url'] );
 
-				$create_tour_url = admin_url( 'post.php?post=' . esc_html( $post_id ) . '&action=edit' );
-				if ( strpos( $create_tour_url, $_SERVER['REQUEST_URI'] ) !== false ) {
+				$edit_tour_url = html_entity_decode( get_edit_post_link( $post_id ) );
+				if ( strpos( $edit_tour_url, $_SERVER['REQUEST_URI'] ) !== false ) {
 					return true;
 				}
 
+				$restrict_url = esc_url( $tour[0]['tour_restrict_url'] );
 				$path_to_find = wp_parse_url( $restrict_url, PHP_URL_PATH );
 				if ( $path_to_find && strpos( $_SERVER['REQUEST_URI'], $path_to_find ) !== false ) {
 					return true;
