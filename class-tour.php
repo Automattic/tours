@@ -54,7 +54,7 @@ class Tour {
 				if ( ! isset( $tour[0]['tour_restrict_url'] ) || empty( $tour[0]['tour_restrict_url'] ) ) {
 					return true;
 				}
-				if ( is_admin() && basename( $_SERVER['PHP_SELF'] ) === 'post.php' && $_GET['action'] === 'edit' && intval( $_GET['post'] ) === $post_id ) {
+				if ( is_admin() && 'post.php' === basename( $_SERVER['PHP_SELF'] ) && 'edit' === $_GET['action'] && intval( $_GET['post'] ) === $post_id ) {
 					return true;
 				}
 
