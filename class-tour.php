@@ -58,7 +58,8 @@ class Tour {
 					return true;
 				}
 
-				if ( $tour[0]['tour_restrict_url'] && preg_match( '#' . ( $tour[0]['tour_restrict_url'] ) . '#', wp_parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) ) ) {
+				if ( $tour[0]['tour_restrict_url'] && preg_match( '#' . ( $tour[0]['tour_restrict_url'] ) . '#', wp_parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) . '?' . wp_parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY ) ) ) {
+					echo $post_id;
 					return true;
 				}
 
