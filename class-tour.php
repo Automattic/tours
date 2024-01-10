@@ -54,17 +54,14 @@ class Tour {
 				if ( ! isset( $tour[0]['tour_restrict_url'] ) || empty( $tour[0]['tour_restrict_url'] ) ) {
 					return true;
 				}
-
-				$edit_tour_url = html_entity_decode( get_edit_post_link( $post_id ) );
-				if ( strpos( $edit_tour_url, $_SERVER['REQUEST_URI'] ) !== false ) {
+				if ( is_admin() && basename( $_SERVER['PHP_SELF'] ) === 'post.php' && $_GET['action'] === 'edit' && intval( $_GET['post'] ) === $post_id ) {
 					return true;
 				}
 
-				$restrict_url = esc_url( $tour[0]['tour_restrict_url'] );
-				$path_to_find = wp_parse_url( $restrict_url, PHP_URL_PATH );
-				if ( $path_to_find && strpos( $_SERVER['REQUEST_URI'], $path_to_find ) !== false ) {
+				if ( $tour[0]['tour_restrict_url'] && preg_match( '#' . ( $tour[0]['tour_restrict_url'] ) . '#', wp_parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) ) ) {
 					return true;
 				}
+
 				return false;
 			},
 			ARRAY_FILTER_USE_BOTH
@@ -351,7 +348,7 @@ class Tour {
 			array(
 				'color'             => sanitize_text_field( $_POST['color'] ),
 				'title'             => $data['post_title'],
-				'tour_restrict_url' => ! empty( $_POST['tour_restrict_url'] ) ? esc_url_raw( $_POST['tour_restrict_url'] ) : '',
+				'tour_restrict_url' => ! empty( $_POST['tour_restrict_url'] ) ? sanitize_text_field( $_POST['tour_restrict_url'] ) : '',
 			),
 		);
 
@@ -446,7 +443,7 @@ class Tour {
 			$tour_url = '';
 		} else {
 			$color    = $tour[0]['color'];
-			$tour_url = esc_url( $tour[0]['tour_restrict_url'] );
+			$tour_url = sanitize_text_field( $tour[0]['tour_restrict_url'] );
 			array_shift( $tour );
 		}
 
@@ -465,9 +462,9 @@ class Tour {
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th scope="row"><label><?php esc_html_e( 'Restrict Tour to URL', 'tour' ); ?></label><br></th>
+					<th scope="row"><label><?php esc_html_e( 'Only show tour if the URL contains (regex allowed)', 'tour' ); ?></label><br></th>
 					<td>
-						<input type="url" name="tour_restrict_url" id="tour_restrict_url" class="regular-text" value="<?php echo esc_url( $tour_url ); ?>"/>
+						<input type="text" name="tour_restrict_url" id="tour_restrict_url" class="regular-text" value="<?php echo esc_attr( $tour_url ); ?>"/>
 					</td>
 				</tr>
 			</tbody>
