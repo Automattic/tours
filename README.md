@@ -21,14 +21,6 @@ Creating the tour is done by entering a creation mode where the HTML tag to be u
 1. Upload the `tour` directory to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
 
-## Frequently Asked Questions
-
-
-## Screenshots
-
-
-## Demo Videos
-
 ### Going through a Tour
 
 
