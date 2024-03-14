@@ -3,7 +3,7 @@
  * Plugin Name: Tour
  * Plugin URI: http://wordpress.org/plugins/tour/
  * Description: A WordPress plugin for creating tours for your site.
- * Version: 1.0
+ * Version: 1.0.0
  * Author: Automattic
  * Author URI: http://automattic.com/
  * Text Domain: tour
