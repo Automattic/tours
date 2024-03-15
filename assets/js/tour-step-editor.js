@@ -84,7 +84,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 function reportMissingSelector( tourTitle, step, selector ) {
 	const xhr = new XMLHttpRequest();
-	xhr.open( 'POST', tour_plugin.rest_url + 'tour/v1/report-missing' );
+	xhr.open( 'POST', tour_plugin.rest_report_missing_url );
 	xhr.setRequestHeader( 'Content-Type', 'application/json' );
 	xhr.setRequestHeader( 'X-WP-Nonce', tour_plugin.nonce );
 	xhr.send(
@@ -222,7 +222,7 @@ const tourStepSelector = function ( event ) {
 
 	if ( tour_plugin.tours[ tourId ].length > 1 ) {
 		const xhr = new XMLHttpRequest();
-		xhr.open( 'POST', tour_plugin.rest_url + 'tour/v1/save' );
+		xhr.open( 'POST', tour_plugin.rest_save_url );
 		xhr.setRequestHeader( 'Content-Type', 'application/json' );
 		xhr.setRequestHeader( 'X-WP-Nonce', tour_plugin.nonce );
 		xhr.send(
