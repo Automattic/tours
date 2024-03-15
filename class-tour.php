@@ -636,7 +636,7 @@ class Tour {
 	 * Adds the tour menu to the sidebar.
 	 */
 	public static function add_admin_menu() {
-		add_menu_page( 'Tour', 'Tour', 'edit_posts', 'tour', 'tour', 'dashicons-admin-site-alt3', 6 );
+		add_menu_page( 'Tours', 'Tours', 'edit_posts', 'tour', 'tour', 'dashicons-admin-site-alt3', 6 );
 		add_submenu_page( 'tour', 'Settings', 'Settings', 'edit_posts', 'tour-settings', array( get_called_class(), 'tour_admin_settings' ) );
 	}
 
