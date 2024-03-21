@@ -151,9 +151,7 @@ class Tour {
 						'success' => true,
 					);
 				},
-				'permission_callback' => function () {
-					return is_user_logged_in();
-				},
+				'permission_callback' => 'is_user_logged_in',
 			)
 		);
 
