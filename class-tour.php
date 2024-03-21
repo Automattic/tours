@@ -151,7 +151,7 @@ class Tour {
 						'success' => true,
 					);
 				},
-				'permission_callback' => function( WP_REST_Request $request ) {
+				'permission_callback' => function () {
 					return is_user_logged_in();
 				},
 			)
@@ -199,7 +199,7 @@ class Tour {
 						'success' => false,
 					);
 				},
-				'permission_callback' => function( WP_REST_Request $request ) {
+				'permission_callback' => function () {
 					return current_user_can( 'edit_posts' );
 				},
 			)
@@ -249,7 +249,7 @@ class Tour {
 
 					return $tour_id;
 				},
-				'permission_callback' => function( WP_REST_Request $request ) {
+				'permission_callback' => function () {
 					return current_user_can( 'edit_posts' );
 				},
 			)
