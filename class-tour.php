@@ -122,8 +122,8 @@ class Tour {
 			'tour/v1',
 			'save-progress',
 			array(
-				'methods'  => 'POST',
-				'callback' => function ( WP_REST_Request $request ) {
+				'methods'             => 'POST',
+				'callback'            => function ( WP_REST_Request $request ) {
 					if ( ! is_user_logged_in() ) {
 						return array( 'success' => 'logged-out' );
 					}
@@ -151,6 +151,7 @@ class Tour {
 						'success' => true,
 					);
 				},
+				'permission_callback' => 'is_user_logged_in',
 			)
 		);
 
@@ -158,8 +159,8 @@ class Tour {
 			'tour/v1',
 			'report-missing',
 			array(
-				'methods'  => 'POST',
-				'callback' => function ( WP_REST_Request $request ) {
+				'methods'             => 'POST',
+				'callback'            => function ( WP_REST_Request $request ) {
 					$step = $request->get_param( 'step' );
 					$tour_id = $request->get_param( 'tour' );
 					$selector = $request->get_param( 'selector' );
@@ -196,6 +197,9 @@ class Tour {
 						'success' => false,
 					);
 				},
+				'permission_callback' => function () {
+					return current_user_can( 'edit_posts' );
+				},
 			)
 		);
 
@@ -203,8 +207,8 @@ class Tour {
 			'tour/v1',
 			'save',
 			array(
-				'methods'  => 'POST',
-				'callback' => function ( WP_REST_Request $request ) {
+				'methods'             => 'POST',
+				'callback'            => function ( WP_REST_Request $request ) {
 					if ( ! current_user_can( 'edit_posts' ) ) {
 						return array(
 							'success' => false,
@@ -242,6 +246,9 @@ class Tour {
 					}
 
 					return $tour_id;
+				},
+				'permission_callback' => function () {
+					return current_user_can( 'edit_posts' );
 				},
 			)
 		);
