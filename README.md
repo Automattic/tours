@@ -1,4 +1,4 @@
-# Tour
+# Tours
 
 - Contributors: akirk, amieiro, psrpinto, spiraltee
 - Tags: tour
@@ -12,7 +12,7 @@ Create tours for your site, these tours can be activated by the user by clicking
 
 ## Description
 
-Tour is a plugin that allows you to create tours for your site. They can be activated by the user by clicking colored glowing buttons.
+Tours is a plugin that allows you to create tours for your site. They can be activated by the user by clicking colored glowing buttons.
 
 Creating the tour is done by entering a creation mode where the HTML tag to be used is highlighted. You can then enter the text for the step, and create a new step by clicking on the next tag to be highlighted.
 
