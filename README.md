@@ -18,14 +18,14 @@ Creating the tour is done by entering a creation mode where the HTML tag to be u
 
 ## Installation
 
-1. Upload the `tour` directory to the `/wp-content/plugins/` directory
+1. Upload the `tours` directory to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
 
 ### Going through a Tour
 
 
 
-https://github.com/Automattic/tour/assets/203408/783bb967-2907-45b8-8bd9-da7f32147ea0
+https://github.com/Automattic/tours/assets/203408/783bb967-2907-45b8-8bd9-da7f32147ea0
 
 
 
@@ -34,7 +34,7 @@ https://github.com/Automattic/tour/assets/203408/783bb967-2907-45b8-8bd9-da7f321
 
 
 
-https://github.com/Automattic/tour/assets/203408/be7f56d6-3869-4afb-9393-242312306180
+https://github.com/Automattic/tours/assets/203408/be7f56d6-3869-4afb-9393-242312306180
 
 
 ## Changelog
