@@ -67,7 +67,7 @@ class Tour {
 			)
 		);
 
-		if ( current_user_can( 'edit_posts' ) ) {
+		if ( current_user_can( 'edit_others_posts' ) ) {
 			wp_register_script( 'tour-step-editor', plugins_url( 'assets/js/tour-step-editor.js', __FILE__ ), array( 'driver-js' ), filemtime( __DIR__ . '/assets/js/tour-step-editor.js' ), array( 'in_footer' => true ) );
 			wp_enqueue_script( 'tour-step-editor' );
 		}
@@ -198,7 +198,7 @@ class Tour {
 					);
 				},
 				'permission_callback' => function () {
-					return current_user_can( 'edit_posts' );
+					return current_user_can( 'edit_others_posts' );
 				},
 			)
 		);
@@ -209,7 +209,7 @@ class Tour {
 			array(
 				'methods'             => 'POST',
 				'callback'            => function ( WP_REST_Request $request ) {
-					if ( ! current_user_can( 'edit_posts' ) ) {
+					if ( ! current_user_can( 'edit_others_posts' ) ) {
 						return array(
 							'success' => false,
 						);
@@ -248,7 +248,7 @@ class Tour {
 					return $tour_id;
 				},
 				'permission_callback' => function () {
-					return current_user_can( 'edit_posts' );
+					return current_user_can( 'edit_others_posts' );
 				},
 			)
 		);
@@ -616,7 +616,7 @@ class Tour {
 			'posts_per_page' => -1,
 		);
 
-		if ( current_user_can( 'edit_posts' ) ) {
+		if ( current_user_can( 'edit_others_posts' ) ) {
 			$args['post_status'] = array( 'publish', 'draft' );
 		}
 
@@ -643,8 +643,8 @@ class Tour {
 	 * Adds the tour menu to the sidebar.
 	 */
 	public static function add_admin_menu() {
-		add_menu_page( 'Tours', 'Tours', 'edit_posts', 'tour', 'tour', 'dashicons-admin-site-alt3', 6 );
-		add_submenu_page( 'tour', 'Settings', 'Settings', 'edit_posts', 'tour-settings', array( get_called_class(), 'tour_admin_settings' ) );
+		add_menu_page( 'Tours', 'Tours', 'edit_others_posts', 'tour', 'tour', 'dashicons-admin-site-alt3', 6 );
+		add_submenu_page( 'tour', 'Settings', 'Settings', 'edit_others_posts', 'tour-settings', array( get_called_class(), 'tour_admin_settings' ) );
 	}
 
 	/**
@@ -656,7 +656,7 @@ class Tour {
 	 * Outputs the tour button.
 	 */
 	public static function output_tour_button() {
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
 			return;
 		}
 		?>
