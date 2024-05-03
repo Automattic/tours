@@ -3,7 +3,7 @@
 - Contributors: akirk, amieiro, psrpinto, spiraltee
 - Tags: tour
 - Requires at least: 5.0
-- Tested up to: 6.3
+- Tested up to: 6.5
 - Requires PHP: 5.6
 - License: GPLv2 or later
 - Stable tag: 1.0.0
