@@ -347,6 +347,13 @@ class Tour {
 
 		if ( isset( $_POST['order'] ) ) {
 			foreach ( $_POST['order'] as $i ) {
+				if ( ! is_int( $i ) || $i < 0 ) {
+					continue;
+				}
+				if ( ! isset( $_POST['tour'][ $i ] ) ) {
+					continue;
+				}
+
 				$step = $_POST['tour'][ $i ];
 
 				if ( '' === trim( $step['element'] ) ) {
