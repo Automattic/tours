@@ -3,7 +3,7 @@
 - Contributors: akirk, amieiro, psrpinto, spiraltee
 - Tags: tour
 - Requires at least: 5.0
-- Tested up to: 6.3
+- Tested up to: 6.5
 - Requires PHP: 5.6
 - License: GPLv2 or later
 - Stable tag: 1.0.0
@@ -35,6 +35,10 @@ https://github.com/Automattic/tours/assets/203408/783bb967-2907-45b8-8bd9-da7f32
 
 
 https://github.com/Automattic/tours/assets/203408/be7f56d6-3869-4afb-9393-242312306180
+
+## Credits
+
+* driver.js by [Kamran Ahmed](https://github.com/kamranahmedse/driver.js). Build version - https://github.com/trymebytes/driver.js/tree/fix-accessibility
 
 
 ## Changelog

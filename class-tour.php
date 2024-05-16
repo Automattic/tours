@@ -323,7 +323,7 @@ class Tour {
 	 * @return     array  The modified data with the tour as JSON.
 	 */
 	public static function wp_insert_post_data( $data, $postarr ) {
-		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'update-post_' . $postarr['ID'] ) ) {
+		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'update-post_' . $postarr['ID'] ) ) {
 			return $data;
 		}
 
@@ -347,6 +347,13 @@ class Tour {
 
 		if ( isset( $_POST['order'] ) ) {
 			foreach ( $_POST['order'] as $i ) {
+				if ( ! is_int( $i ) || $i < 0 ) {
+					continue;
+				}
+				if ( ! isset( $_POST['tour'][ $i ] ) ) {
+					continue;
+				}
+
 				$step = $_POST['tour'][ $i ];
 
 				if ( '' === trim( $step['element'] ) ) {
