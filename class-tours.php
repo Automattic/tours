@@ -1,12 +1,12 @@
 <?php
 /**
- * @package Tour
+ * @package Tours
  */
 
 /**
  * The class containting all hooks for the Tour.
  */
-class Tour {
+class Tours {
 	/**
 	 * Register all hooks.
 	 */

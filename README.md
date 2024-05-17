@@ -1,7 +1,7 @@
 # Tours
 
 - Contributors: akirk, amieiro, psrpinto, spiraltee
-- Tags: tour
+- Tags: tours
 - Requires at least: 5.0
 - Tested up to: 6.5
 - Requires PHP: 5.6
