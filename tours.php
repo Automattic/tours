@@ -6,14 +6,14 @@
  * Version: 1.0.0
  * Author: Automattic
  * Author URI: http://automattic.com/
- * Text Domain: tour
+ * Text Domain: tours
  * License: GPLv2 or later
  *
  * @package Tour
  */
 
 defined( 'ABSPATH' ) || die();
-define( 'TOUR_VERSION', '1.0' );
+define( 'TOURS_VERSION', '1.0' );
 
-require __DIR__ . '/class-tour.php';
-Tour::register_hooks();
+require __DIR__ . '/class-tours.php';
+Tours::register_hooks();
