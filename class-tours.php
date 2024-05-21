@@ -341,7 +341,7 @@ class Tours {
 		);
 
 		if ( isset( $_POST['override_json'] ) ) {
-			$data['post_content'] = $_POST['json'];
+			$data['post_content'] = sanitize_text_field( $_POST['json'] );
 			return $data;
 		}
 
