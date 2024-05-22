@@ -354,7 +354,7 @@ class Tours {
 					continue;
 				}
 
-				if ( ! isset( $_POST['tour'][ $i ]['element'] ) &&  '' === trim( $step['element'] ) ) {
+				if ( ! isset( $_POST['tour'][ $i ]['element'] ) || '' === trim( $step['element'] ) ) {
 					continue;
 				}
 
