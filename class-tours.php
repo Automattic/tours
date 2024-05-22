@@ -365,7 +365,7 @@ class Tours {
 				$tour[] = array(
 					'element' => sanitize_text_field( $_POST['tour'][ $i ]['element'] ),
 					'popover' => array(
-						'title' => sanitize_text_field( $_POST['tour'][ $i ]['popover'][ 'title' ] ),
+						'title'       => sanitize_text_field( $_POST['tour'][ $i ]['popover'][ 'title' ] ),
 						'description' => wp_kses_post( preg_replace( '/(\s|\x{00a0})+/siu', ' ', nl2br( $_POST['tour'][ $i ]['popover'][ 'description' ] ) ) ),
 					),
 				);
