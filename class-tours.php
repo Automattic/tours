@@ -354,28 +354,21 @@ class Tours {
 					continue;
 				}
 
-				$step = $_POST['tour'][ $i ];
-
-				if ( '' === trim( $step['element'] ) ) {
+				if ( ! isset( $_POST['tour'][ $i ]['element'] ) &&  '' === trim( $step['element'] ) ) {
 					continue;
 				}
 
-				if ( ! isset( $step['popover'] ) ) {
+				if ( ! isset( $_POST['tour'][ $i ]['popover'] ) ) {
 					continue;
 				}
 
-				$step['element'] = sanitize_text_field( $step['element'] );
-				foreach ( $step['popover'] as $k => $v ) {
-					if ( 'title' === $k ) {
-						$step['popover'][ $k ] = sanitize_text_field( $step['popover'][ $k ] );
-					} elseif ( 'description' === $k ) {
-						$step['popover'][ $k ] = preg_replace( '/(\s|\x{00a0})+/siu', ' ', nl2br( $step['popover'][ $k ] ) );
-						$step['popover'][ $k ] = wp_kses_post( $step['popover'][ $k ] );
-					} else {
-						unset( $step['popover'][ $k ] );
-					}
-				}
-				$tour[] = $step;
+				$tour[] = array(
+					'element' => sanitize_text_field( $_POST['tour'][ $i ]['element'] ),
+					'popover' => array(
+						'title' => sanitize_text_field( $_POST['tour'][ $i ]['popover'][ 'title' ] ),
+						'description' => wp_kses_post( preg_replace( '/(\s|\x{00a0})+/siu', ' ', nl2br( $_POST['tour'][ $i ]['popover'][ 'description' ] ) ) ),
+					),
+				);
 			}
 		}
 
