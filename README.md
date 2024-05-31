@@ -1,6 +1,6 @@
 # Tours
 
-- Contributors: akirk, amieiro, psrpinto, spiraltee
+- Contributors: akirk, amieiro, psrpinto, spiraltee, lidialab, piermario
 - Tags: tours
 - Requires at least: 5.0
 - Tested up to: 6.5
