@@ -129,8 +129,14 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				}
 				wrapper.classList.add( 'pulse-wrapper' );
 			}
+
 			if ( ! wrapper.querySelector( '.pulse' ) ) {
-				const pulse = document.createElement( 'div' );
+				const pulse = document.createElement( 'button' );
+				pulse.dataset.tourTitle =
+					tour_plugin.tours[ tourId ][ 0 ].title;
+				pulse.ariaLabel =
+					'Start the ' + pulse.dataset.tourTitle + ' tour';
+				pulse.ariaHasPopup = 'dialog';
 				pulse.classList.add( 'pulse' );
 				pulse.classList.add(
 					getAnimationClassName(
@@ -143,8 +149,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				);
 				pulse.classList.add( 'tour-' + tourId );
 				pulse.dataset.tourId = tourId;
-				pulse.dataset.tourTitle =
-					tour_plugin.tours[ tourId ][ 0 ].title;
+
 				if ( field.hasChildNodes() ) {
 					wrapper.insertBefore( pulse, wrapper.firstChild );
 				} else {
