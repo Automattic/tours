@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: ${{ matrix.php }}
           ini-values: zend.assertions=1, error_reporting=-1, display_errors=On
@@ -44,14 +44,14 @@ jobs:
       # @link https://github.com/marketplace/actions/install-composer-dependencies
       - name: Install Composer dependencies - normal
         if: matrix.php != '8.3'
-        uses: "ramsey/composer-install@v2"
+        uses: "ramsey/composer-install@1919f6c305aea6ab10e6181a8ddf72317ad77e0e" # 2.3.1
         with:
           # Bust the cache at least once a month - output format: YYYY-MM.
           custom-cache-suffix: $(date -u "+%Y-%m")
 
       - name: Install Composer dependencies - ignore PHP restrictions
         if: matrix.php == '8.3'
-        uses: "ramsey/composer-install@v2"
+        uses: "ramsey/composer-install@1919f6c305aea6ab10e6181a8ddf72317ad77e0e" # 2.3.1
         with:
           composer-options: --ignore-platform-req=php+
           # Bust the cache at least once a month - output format: YYYY-MM.
