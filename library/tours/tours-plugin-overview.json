@@ -1,0 +1,24 @@
+{
+	"schema": "https://automattic.github.io/tours/schemas/tour-package-v1.json",
+	"version": 1,
+	"id": "tours-plugin-overview",
+	"title": "Tours Plugin Overview",
+	"color": "#3939c7",
+	"description": "Introduces the tour launcher and available tours list.",
+	"steps": [
+		{
+			"element": "#tour-launcher",
+			"popover": {
+				"title": "Tour launcher",
+				"description": "The tour launcher opens tours that are available on the current screen."
+			}
+		},
+		{
+			"element": "#page-tour-list",
+			"popover": {
+				"title": "Available tours",
+				"description": "The available tours list lets visitors start a tour from page content."
+			}
+		}
+	]
+}

@@ -1,0 +1,12 @@
+{
+	"schema": "https://automattic.github.io/tours/schemas/tour-catalog-v1.json",
+	"version": 1,
+	"tours": [
+		{
+			"id": "tours-plugin-overview",
+			"title": "Tours Plugin Overview",
+			"description": "Introduces the tour launcher and available tours list.",
+			"path": "tours-plugin-overview.json"
+		}
+	]
+}

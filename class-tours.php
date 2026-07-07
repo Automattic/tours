@@ -27,6 +27,7 @@ class Tours {
 		add_filter( 'tour_list', array( $class, 'tour_list' ) );
 		add_shortcode( 'tour_list', array( $class, 'show_tour_list' ) );
 		add_action( 'admin_menu', array( $class, 'add_admin_menu' ) );
+		add_action( 'admin_post_tour_import_library_tour', array( $class, 'import_library_tour' ) );
 		add_action( 'wp_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'admin_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'gp_footer', array( $class, 'output_tour_button' ) );
@@ -644,7 +645,230 @@ class Tours {
 	 */
 	public static function add_admin_menu() {
 		add_menu_page( 'Tours', 'Tours', 'edit_others_posts', 'tour', 'tour', 'dashicons-admin-site-alt3', 6 );
+		add_submenu_page( 'tour', 'Library', 'Library', 'edit_others_posts', 'tour-library', array( get_called_class(), 'tour_admin_library' ) );
 		add_submenu_page( 'tour', 'Settings', 'Settings', 'edit_others_posts', 'tour-settings', array( get_called_class(), 'tour_admin_settings' ) );
+	}
+
+	/**
+	 * Output the tour library.
+	 */
+	public static function tour_admin_library() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to import tours.', 'tour' ) );
+		}
+
+		$catalog = self::get_bundled_tour_catalog();
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'Tour Library', 'tour' ); ?></h1>
+			<?php if ( isset( $_GET['imported'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php esc_html_e( 'Tour imported as a draft.', 'tour' ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( is_wp_error( $catalog ) ) : ?>
+				<div class="notice notice-error">
+					<p><?php echo esc_html( $catalog->get_error_message() ); ?></p>
+				</div>
+			<?php elseif ( empty( $catalog['tours'] ) ) : ?>
+				<p><?php esc_html_e( 'There are no tours available in the library.', 'tour' ); ?></p>
+			<?php else : ?>
+				<table class="widefat striped">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Tour', 'tour' ); ?></th>
+							<th><?php esc_html_e( 'Description', 'tour' ); ?></th>
+							<th><?php esc_html_e( 'Source', 'tour' ); ?></th>
+							<th><?php esc_html_e( 'Status', 'tour' ); ?></th>
+							<th><?php esc_html_e( 'Action', 'tour' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $catalog['tours'] as $tour ) : ?>
+							<?php $imported_tour = self::get_imported_library_tour( $tour['id'] ); ?>
+							<tr>
+								<td><strong><?php echo esc_html( $tour['title'] ); ?></strong></td>
+								<td><?php echo esc_html( isset( $tour['description'] ) ? $tour['description'] : '' ); ?></td>
+								<td><?php esc_html_e( 'Bundled', 'tour' ); ?></td>
+								<td>
+									<?php
+									if ( $imported_tour ) {
+										esc_html_e( 'Imported', 'tour' );
+									} else {
+										esc_html_e( 'Not imported', 'tour' );
+									}
+									?>
+								</td>
+								<td>
+									<?php if ( $imported_tour ) : ?>
+										<a class="button" href="<?php echo esc_url( get_edit_post_link( $imported_tour->ID, '' ) ); ?>"><?php esc_html_e( 'Edit', 'tour' ); ?></a>
+									<?php else : ?>
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+											<input type="hidden" name="action" value="tour_import_library_tour" />
+											<input type="hidden" name="source" value="bundled" />
+											<input type="hidden" name="tour" value="<?php echo esc_attr( $tour['id'] ); ?>" />
+											<?php wp_nonce_field( 'tour_import_library_tour_' . $tour['id'] ); ?>
+											<?php submit_button( __( 'Import', 'tour' ), 'primary small', 'submit', false ); ?>
+										</form>
+									<?php endif; ?>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Import a tour from the library.
+	 */
+	public static function import_library_tour() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to import tours.', 'tour' ) );
+		}
+
+		$tour_id = isset( $_POST['tour'] ) ? sanitize_key( wp_unslash( $_POST['tour'] ) ) : '';
+		check_admin_referer( 'tour_import_library_tour_' . $tour_id );
+
+		$source = isset( $_POST['source'] ) ? sanitize_key( wp_unslash( $_POST['source'] ) ) : '';
+		if ( 'bundled' !== $source || '' === $tour_id ) {
+			wp_die( esc_html__( 'Invalid tour library source.', 'tour' ) );
+		}
+
+		$package = self::get_bundled_tour_package( $tour_id );
+		if ( is_wp_error( $package ) ) {
+			wp_die( esc_html( $package->get_error_message() ) );
+		}
+
+		$tour_steps = Tour_Package::package_to_tour_steps( $package );
+		if ( is_wp_error( $tour_steps ) ) {
+			wp_die( esc_html( $tour_steps->get_error_message() ) );
+		}
+
+		$post_id = wp_insert_post(
+			array(
+				'post_type'    => 'tour',
+				'post_status'  => 'draft',
+				'post_title'   => $package['title'],
+				'post_content' => wp_json_encode( $tour_steps, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
+			),
+			true
+		);
+
+		if ( is_wp_error( $post_id ) ) {
+			wp_die( esc_html( $post_id->get_error_message() ) );
+		}
+
+		update_post_meta( $post_id, '_tour_package_id', $package['id'] );
+		update_post_meta( $post_id, '_tour_package_source', $package['source'] );
+		update_post_meta( $post_id, '_tour_package_imported_hash', self::get_package_hash( $package ) );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'     => 'tour-library',
+					'imported' => $post_id,
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Get the bundled tour catalog.
+	 *
+	 * @return array|WP_Error Catalog data.
+	 */
+	private static function get_bundled_tour_catalog() {
+		$catalog_path = __DIR__ . '/library/catalog.json';
+		if ( ! file_exists( $catalog_path ) ) {
+			return new WP_Error( 'tour_library_missing_catalog', __( 'The bundled tour catalog is missing.', 'tour' ) );
+		}
+
+		$catalog = json_decode( file_get_contents( $catalog_path ), true );
+		if ( ! is_array( $catalog ) ) {
+			return new WP_Error( 'tour_library_invalid_catalog', __( 'The bundled tour catalog is invalid.', 'tour' ) );
+		}
+
+		$validation = Tour_Package::validate_catalog( $catalog );
+		if ( is_wp_error( $validation ) ) {
+			return $validation;
+		}
+
+		return $catalog;
+	}
+
+	/**
+	 * Get a bundled tour package by id.
+	 *
+	 * @param string $tour_id Tour package id.
+	 * @return array|WP_Error Package data.
+	 */
+	private static function get_bundled_tour_package( $tour_id ) {
+		$catalog = self::get_bundled_tour_catalog();
+		if ( is_wp_error( $catalog ) ) {
+			return $catalog;
+		}
+
+		foreach ( $catalog['tours'] as $tour ) {
+			if ( $tour_id !== $tour['id'] ) {
+				continue;
+			}
+
+			$base_path = realpath( __DIR__ . '/library/tours' );
+			$path      = realpath( __DIR__ . '/library/tours/' . $tour['path'] );
+			if ( ! $base_path || ! $path || 0 !== strpos( $path, $base_path . DIRECTORY_SEPARATOR ) ) {
+				return new WP_Error( 'tour_library_invalid_path', __( 'The bundled tour path is invalid.', 'tour' ) );
+			}
+
+			$package = json_decode( file_get_contents( $path ), true );
+			if ( ! is_array( $package ) ) {
+				return new WP_Error( 'tour_library_invalid_package', __( 'The bundled tour package is invalid.', 'tour' ) );
+			}
+
+			$package['source'] = array(
+				'type' => 'bundled',
+				'path' => 'library/tours/' . $tour['path'],
+			);
+
+			return Tour_Package::normalize_package( $package );
+		}
+
+		return new WP_Error( 'tour_library_missing_tour', __( 'The requested bundled tour was not found.', 'tour' ) );
+	}
+
+	/**
+	 * Get an imported tour by package id.
+	 *
+	 * @param string $package_id Package id.
+	 * @return WP_Post|null Imported post.
+	 */
+	private static function get_imported_library_tour( $package_id ) {
+		$posts = get_posts(
+			array(
+				'post_type'      => 'tour',
+				'post_status'    => array( 'publish', 'draft' ),
+				'posts_per_page' => 1,
+				'meta_key'       => '_tour_package_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'     => $package_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			)
+		);
+
+		return empty( $posts ) ? null : $posts[0];
+	}
+
+	/**
+	 * Get a stable package hash.
+	 *
+	 * @param array $package Package data.
+	 * @return string Package hash.
+	 */
+	private static function get_package_hash( $package ) {
+		return hash( 'sha256', wp_json_encode( $package, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
 	}
 
 	/**
