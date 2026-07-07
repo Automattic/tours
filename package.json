@@ -4,6 +4,7 @@
 	"description": "A WordPress plugin for creating tours for your site.",
 	"author": "Automattic",
 	"license": "GPL-2.0-or-later",
+	"packageManager": "yarn@1.22.22",
 	"main": "assets/blocks/build/index.js",
 	"scripts": {
 		"build": "wp-scripts build --webpack-src-dir=assets/blocks/src --output-path=assets/blocks/build",
@@ -16,10 +17,12 @@
 		"dev": "wp-scripts start --webpack-src-dir=assets/blocks/src --output-path=assets/blocks/build"
 	},
 	"devDependencies": {
-		"@wordpress/scripts": "^26.19.0"
-	},
-	"overrides": {
-		"basic-ftp": "5.2.1",
-		"form-data": "4.0.4"
+		"@wordpress/block-editor": "^15.23.0",
+		"@wordpress/blocks": "^15.23.0",
+		"@wordpress/components": "^36.1.0",
+		"@wordpress/eslint-plugin": "^25.6.0",
+		"@wordpress/i18n": "^6.23.0",
+		"@wordpress/scripts": "^32.6.0",
+		"@wordpress/server-side-render": "^6.26.0"
 	}
 }
