@@ -4,6 +4,7 @@
 	"license": "GPL-2.0-or-later",
 	"require-dev": {
 		"phpcompatibility/php-compatibility": "*",
+		"phpunit/phpunit": "^9.6",
 		"wp-coding-standards/wpcs": "*"
 	},
 	"config": {
