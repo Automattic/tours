@@ -155,8 +155,56 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				} else {
 					wrapper.insertBefore( pulse, field );
 				}
+				window.requestAnimationFrame( function () {
+					keepPulseInViewport( pulse );
+				} );
 			}
 		}
+	}
+
+	function keepPulseInViewport( pulse ) {
+		const viewportPadding = 18;
+		const offscreenPadding = 64;
+
+		pulse.style.transform = '';
+
+		const rect = pulse.getBoundingClientRect();
+		let translateX = 0;
+		let translateY = 0;
+
+		if (
+			rect.right < -offscreenPadding ||
+			rect.left > window.innerWidth + offscreenPadding ||
+			rect.bottom < -offscreenPadding ||
+			rect.top > window.innerHeight + offscreenPadding
+		) {
+			return;
+		}
+
+		if ( rect.left < viewportPadding ) {
+			translateX = viewportPadding - rect.left;
+		} else if ( rect.right > window.innerWidth - viewportPadding ) {
+			translateX = window.innerWidth - viewportPadding - rect.right;
+		}
+
+		if ( rect.top < viewportPadding ) {
+			translateY = viewportPadding - rect.top;
+		} else if ( rect.bottom > window.innerHeight - viewportPadding ) {
+			translateY = window.innerHeight - viewportPadding - rect.bottom;
+		}
+
+		if ( translateX || translateY ) {
+			pulse.style.transform =
+				'translate(' + translateX + 'px, ' + translateY + 'px)';
+		}
+	}
+
+	function keepPulsesInViewport() {
+		document.querySelectorAll( '.pulse' ).forEach( keepPulseInViewport );
+	}
+
+	function schedulePulsePositionUpdate() {
+		window.requestAnimationFrame( keepPulsesInViewport );
 	}
 
 	function rgbToHex( rgb ) {
@@ -427,6 +475,8 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		}
 	};
 	loadTour();
+	window.addEventListener( 'resize', schedulePulsePositionUpdate );
+	window.addEventListener( 'scroll', schedulePulsePositionUpdate );
 	filter_available_tours();
 	setTimeout( filter_available_tours, 500 );
 

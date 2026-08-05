@@ -28,7 +28,9 @@ class Tours {
 		add_shortcode( 'tour_list', array( $class, 'show_tour_list' ) );
 		add_action( 'admin_menu', array( $class, 'add_admin_menu' ) );
 		add_action( 'admin_post_tour_import_library_tour', array( $class, 'import_library_tour' ) );
+		add_action( 'admin_post_tour_reimport_library_tour', array( $class, 'reimport_library_tour' ) );
 		add_action( 'admin_post_tour_export_package', array( $class, 'export_tour_package' ) );
+		add_action( 'admin_post_tour_submit_github_fix', array( $class, 'submit_github_fix' ) );
 		add_action( 'wp_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'admin_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'gp_footer', array( $class, 'output_tour_button' ) );
@@ -350,26 +352,28 @@ class Tours {
 
 		if ( isset( $_POST['order'] ) ) {
 			foreach ( $_POST['order'] as $i ) {
-				if ( ! is_int( $i ) || $i < 0 ) {
+				if ( ! is_scalar( $i ) || ! preg_match( '/^\d+$/', (string) $i ) ) {
 					continue;
 				}
+				$i = (int) $i;
 				if ( ! isset( $_POST['tour'][ $i ] ) ) {
 					continue;
 				}
+				$step = $_POST['tour'][ $i ];
 
-				if ( ! isset( $_POST['tour'][ $i ]['element'] ) || '' === trim( $step['element'] ) ) {
+				if ( ! isset( $step['element'] ) || '' === trim( $step['element'] ) ) {
 					continue;
 				}
 
-				if ( ! isset( $_POST['tour'][ $i ]['popover'] ) ) {
+				if ( ! isset( $step['popover'] ) ) {
 					continue;
 				}
 
 				$tour[] = array(
-					'element' => sanitize_text_field( $_POST['tour'][ $i ]['element'] ),
+					'element' => sanitize_text_field( $step['element'] ),
 					'popover' => array(
-						'title'       => sanitize_text_field( $_POST['tour'][ $i ]['popover']['title'] ),
-						'description' => wp_kses_post( preg_replace( '/(\s|\x{00a0})+/siu', ' ', nl2br( $_POST['tour'][ $i ]['popover']['description'] ) ) ),
+						'title'       => sanitize_text_field( $step['popover']['title'] ),
+						'description' => wp_kses_post( preg_replace( '/(\s|\x{00a0})+/siu', ' ', nl2br( $step['popover']['description'] ) ) ),
 					),
 				);
 			}
@@ -404,6 +408,15 @@ class Tours {
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => array( get_called_class(), 'sanitize_github_library_sources' ),
+				'default'           => '',
+			)
+		);
+		register_setting(
+			'tour-settings',
+			'tour_github_token',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
 				'default'           => '',
 			)
 		);
@@ -678,6 +691,19 @@ class Tours {
 					<p><?php esc_html_e( 'Tour imported as a draft.', 'tour' ); ?></p>
 				</div>
 			<?php endif; ?>
+			<?php if ( isset( $_GET['reimported'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php esc_html_e( 'Tour reimported from the library.', 'tour' ); ?></p>
+				</div>
+			<?php endif; ?>
+			<?php if ( isset( $_GET['pr'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+				<div class="notice notice-success is-dismissible">
+					<p>
+						<?php esc_html_e( 'GitHub pull request created:', 'tour' ); ?>
+						<a href="<?php echo esc_url( wp_unslash( $_GET['pr'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>" target="_blank" rel="noreferrer"><?php echo esc_html( wp_unslash( $_GET['pr'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></a>
+					</p>
+				</div>
+			<?php endif; ?>
 
 			<?php foreach ( $library['errors'] as $error ) : ?>
 				<div class="notice notice-error"><p><?php echo esc_html( $error->get_error_message() ); ?></p></div>
@@ -696,11 +722,11 @@ class Tours {
 							<th><?php esc_html_e( 'Action', 'tour' ); ?></th>
 						</tr>
 					</thead>
-					<tbody>
-						<?php foreach ( $library['items'] as $tour ) : ?>
-							<?php $imported_tour = self::get_imported_library_tour( $tour['id'] ); ?>
-							<tr>
-								<td><strong><?php echo esc_html( $tour['title'] ); ?></strong></td>
+						<tbody>
+							<?php foreach ( $library['items'] as $tour ) : ?>
+								<?php $imported_tour = self::get_imported_library_tour( $tour['id'], $tour['source_identity'] ); ?>
+								<tr>
+									<td><strong><?php echo esc_html( $tour['title'] ); ?></strong></td>
 								<td><?php echo esc_html( isset( $tour['description'] ) ? $tour['description'] : '' ); ?></td>
 								<td><?php echo esc_html( $tour['source_label'] ); ?></td>
 								<td>
@@ -716,6 +742,22 @@ class Tours {
 									<?php if ( $imported_tour ) : ?>
 										<a class="button" href="<?php echo esc_url( get_edit_post_link( $imported_tour->ID, '' ) ); ?>"><?php esc_html_e( 'Edit', 'tour' ); ?></a>
 										<a class="button" href="<?php echo esc_url( self::get_export_tour_package_url( $imported_tour->ID ) ); ?>"><?php esc_html_e( 'Export package', 'tour' ); ?></a>
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display: inline-block">
+											<input type="hidden" name="action" value="tour_reimport_library_tour" />
+											<input type="hidden" name="source" value="<?php echo esc_attr( $tour['source_key'] ); ?>" />
+											<input type="hidden" name="tour" value="<?php echo esc_attr( $tour['id'] ); ?>" />
+											<input type="hidden" name="post" value="<?php echo esc_attr( $imported_tour->ID ); ?>" />
+											<?php wp_nonce_field( 'tour_reimport_library_tour_' . $tour['id'] . '_' . $imported_tour->ID ); ?>
+											<?php submit_button( __( 'Reimport', 'tour' ), 'secondary small', 'submit', false ); ?>
+										</form>
+										<?php if ( self::is_github_imported_tour( $imported_tour ) ) : ?>
+											<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display: inline-block">
+												<input type="hidden" name="action" value="tour_submit_github_fix" />
+												<input type="hidden" name="tour" value="<?php echo esc_attr( $imported_tour->ID ); ?>" />
+												<?php wp_nonce_field( 'tour_submit_github_fix_' . $imported_tour->ID ); ?>
+												<?php submit_button( __( 'Submit fix PR', 'tour' ), 'secondary small', 'submit', false ); ?>
+											</form>
+										<?php endif; ?>
 									<?php else : ?>
 										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 											<input type="hidden" name="action" value="tour_import_library_tour" />
@@ -792,6 +834,126 @@ class Tours {
 	}
 
 	/**
+	 * Reimport a previously imported tour from the library.
+	 */
+	public static function reimport_library_tour() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to import tours.', 'tour' ) );
+		}
+
+		$tour_id = isset( $_POST['tour'] ) ? sanitize_key( wp_unslash( $_POST['tour'] ) ) : '';
+		$post_id = isset( $_POST['post'] ) ? absint( $_POST['post'] ) : 0;
+		check_admin_referer( 'tour_reimport_library_tour_' . $tour_id . '_' . $post_id );
+
+		$source = isset( $_POST['source'] ) ? sanitize_key( wp_unslash( $_POST['source'] ) ) : '';
+		if ( '' === $source || '' === $tour_id || ! $post_id ) {
+			wp_die( esc_html__( 'Invalid tour library source.', 'tour' ) );
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post || 'tour' !== $post->post_type ) {
+			wp_die( esc_html__( 'The requested tour was not found.', 'tour' ) );
+		}
+
+		$package_id = get_post_meta( $post_id, '_tour_package_id', true );
+		if ( $tour_id !== $package_id ) {
+			wp_die( esc_html__( 'The requested tour does not match the library package.', 'tour' ) );
+		}
+
+		$package = self::get_library_tour_package( $source, $tour_id );
+		if ( is_wp_error( $package ) ) {
+			wp_die( esc_html( $package->get_error_message() ) );
+		}
+
+		$package_source = isset( $package['source'] ) ? self::get_package_source_identity( $package['source'] ) : array();
+		$stored_source  = get_post_meta( $post_id, '_tour_package_source', true );
+		if ( ! self::library_sources_match( $package_source, $stored_source ) ) {
+			wp_die( esc_html__( 'The requested tour does not match the library source.', 'tour' ) );
+		}
+
+		$tour_steps = Tour_Package::package_to_tour_steps( $package );
+		if ( is_wp_error( $tour_steps ) ) {
+			wp_die( esc_html( $tour_steps->get_error_message() ) );
+		}
+
+		$updated = wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_title'   => $package['title'],
+				'post_content' => wp_json_encode( $tour_steps, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
+			),
+			true
+		);
+
+		if ( is_wp_error( $updated ) ) {
+			wp_die( esc_html( $updated->get_error_message() ) );
+		}
+
+		update_post_meta( $post_id, '_tour_package_id', $package['id'] );
+		update_post_meta( $post_id, '_tour_package_source', $package['source'] );
+		update_post_meta( $post_id, '_tour_package_imported_hash', self::get_package_hash( $package ) );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'       => 'tour-library',
+					'reimported' => $post_id,
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Submit a fixed tour package to GitHub as a pull request.
+	 */
+	public static function submit_github_fix() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to submit tour fixes.', 'tour' ) );
+		}
+
+		$post_id = isset( $_POST['tour'] ) ? absint( $_POST['tour'] ) : 0;
+		check_admin_referer( 'tour_submit_github_fix_' . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || 'tour' !== $post->post_type ) {
+			wp_die( esc_html__( 'The requested tour was not found.', 'tour' ) );
+		}
+
+		$package = self::get_package_for_tour_post( $post );
+		if ( is_wp_error( $package ) ) {
+			wp_die( esc_html( $package->get_error_message() ) );
+		}
+
+		$source = isset( $package['source'] ) ? $package['source'] : array();
+		if ( empty( $source['type'] ) || 'github' !== $source['type'] ) {
+			wp_die( esc_html__( 'Only GitHub-sourced tours can be submitted to GitHub.', 'tour' ) );
+		}
+
+		$token = get_option( 'tour_github_token', '' );
+		if ( '' === $token ) {
+			wp_die( esc_html__( 'Add a GitHub access token in Tours settings before submitting fixes.', 'tour' ) );
+		}
+
+		$pull_request = self::create_github_fix_pull_request( $package, $token );
+		if ( is_wp_error( $pull_request ) ) {
+			wp_die( esc_html( $pull_request->get_error_message() ) );
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page' => 'tour-library',
+					'pr'   => $pull_request,
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
 	 * Sanitize GitHub library sources.
 	 *
 	 * @param string $sources Source lines.
@@ -859,15 +1021,77 @@ class Tours {
 			}
 
 			foreach ( $catalog['tours'] as $tour ) {
-				$tour['source_key']   = $source['key'];
-				$tour['source_label'] = $source['label'];
-				$items[]              = $tour;
+				$tour['source_key']      = $source['key'];
+				$tour['source_label']    = $source['label'];
+				$tour['source_identity'] = self::get_library_tour_source_identity( $source, $tour );
+				$items[]                 = $tour;
 			}
 		}
 
 		return array(
 			'items'  => $items,
 			'errors' => $errors,
+		);
+	}
+
+	/**
+	 * Get a stable source identity for a catalog tour.
+	 *
+	 * @param array $source Library source.
+	 * @param array $tour   Catalog tour.
+	 * @return array Source identity.
+	 */
+	private static function get_library_tour_source_identity( $source, $tour ) {
+		if ( 'bundled' === $source['type'] ) {
+			return array(
+				'type' => 'bundled',
+				'path' => 'library/tours/' . ltrim( $tour['path'], '/' ),
+			);
+		}
+
+		if ( 'github' === $source['type'] ) {
+			return array(
+				'type' => 'github',
+				'repo' => $source['owner'] . '/' . $source['repo'],
+				'path' => $source['path'] . '/' . ltrim( $tour['path'], '/' ),
+				'ref'  => $source['ref'],
+			);
+		}
+
+		return array(
+			'type' => isset( $source['type'] ) ? $source['type'] : '',
+		);
+	}
+
+	/**
+	 * Get a stable source identity from imported package source metadata.
+	 *
+	 * @param array $source Package source.
+	 * @return array Source identity.
+	 */
+	private static function get_package_source_identity( $source ) {
+		if ( ! is_array( $source ) || empty( $source['type'] ) ) {
+			return array();
+		}
+
+		if ( 'bundled' === $source['type'] ) {
+			return array(
+				'type' => 'bundled',
+				'path' => isset( $source['path'] ) ? $source['path'] : '',
+			);
+		}
+
+		if ( 'github' === $source['type'] ) {
+			return array(
+				'type' => 'github',
+				'repo' => isset( $source['repo'] ) ? $source['repo'] : '',
+				'path' => isset( $source['path'] ) ? $source['path'] : '',
+				'ref'  => isset( $source['ref'] ) ? $source['ref'] : '',
+			);
+		}
+
+		return array(
+			'type' => $source['type'],
 		);
 	}
 
@@ -1150,23 +1374,52 @@ class Tours {
 	}
 
 	/**
-	 * Get an imported tour by package id.
+	 * Get an imported tour by package id and source.
 	 *
-	 * @param string $package_id Package id.
+	 * @param string $package_id      Package id.
+	 * @param array  $source_identity Source identity.
 	 * @return WP_Post|null Imported post.
 	 */
-	private static function get_imported_library_tour( $package_id ) {
+	private static function get_imported_library_tour( $package_id, $source_identity ) {
 		$posts = get_posts(
 			array(
 				'post_type'      => 'tour',
 				'post_status'    => array( 'publish', 'draft' ),
-				'posts_per_page' => 1,
+				'posts_per_page' => -1,
 				'meta_key'       => '_tour_package_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 				'meta_value'     => $package_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			)
 		);
 
-		return empty( $posts ) ? null : $posts[0];
+		foreach ( $posts as $post ) {
+			if ( self::library_sources_match( $source_identity, get_post_meta( $post->ID, '_tour_package_source', true ) ) ) {
+				return $post;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Check whether stored source metadata matches a stable source identity.
+	 *
+	 * @param array $source_identity Source identity.
+	 * @param mixed $stored_source   Stored source metadata.
+	 * @return bool Whether sources match.
+	 */
+	private static function library_sources_match( $source_identity, $stored_source ) {
+		if ( ! is_array( $source_identity ) || empty( $source_identity['type'] ) || ! is_array( $stored_source ) ) {
+			return false;
+		}
+
+		$stored_source_identity = self::get_package_source_identity( $stored_source );
+		foreach ( $source_identity as $key => $value ) {
+			if ( ! isset( $stored_source_identity[ $key ] ) || $value !== $stored_source_identity[ $key ] ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -1187,6 +1440,18 @@ class Tours {
 		}
 
 		return __( 'Imported', 'tour' );
+	}
+
+	/**
+	 * Check whether a tour was imported from GitHub.
+	 *
+	 * @param WP_Post $post Tour post.
+	 * @return bool Whether the tour came from GitHub.
+	 */
+	private static function is_github_imported_tour( $post ) {
+		$source = get_post_meta( $post->ID, '_tour_package_source', true );
+
+		return is_array( $source ) && ! empty( $source['type'] ) && 'github' === $source['type'];
 	}
 
 	/**
@@ -1235,6 +1500,156 @@ class Tours {
 	}
 
 	/**
+	 * Create a GitHub pull request for a fixed tour package.
+	 *
+	 * @param array  $package Tour package.
+	 * @param string $token   GitHub token.
+	 * @return string|WP_Error Pull request URL or error.
+	 */
+	private static function create_github_fix_pull_request( $package, $token ) {
+		$source = $package['source'];
+		if ( empty( $source['repo'] ) || empty( $source['path'] ) || empty( $source['ref'] ) || empty( $source['sha'] ) ) {
+			return new WP_Error( 'tour_github_missing_source', __( 'The tour is missing GitHub source metadata.', 'tour' ) );
+		}
+
+		$repo_parts = explode( '/', $source['repo'], 2 );
+		if ( 2 !== count( $repo_parts ) ) {
+			return new WP_Error( 'tour_github_invalid_repo', __( 'The tour GitHub repository is invalid.', 'tour' ) );
+		}
+
+		$owner       = $repo_parts[0];
+		$repo        = $repo_parts[1];
+		$base_branch = $source['ref'];
+		$new_branch  = 'tour-fix/' . sanitize_title( $package['id'] ) . '-' . time();
+		$json        = wp_json_encode( $package, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "\n";
+
+		$base_ref = self::github_api_request( 'GET', $owner, $repo, 'git/ref/heads/' . $base_branch, $token );
+		if ( is_wp_error( $base_ref ) ) {
+			return $base_ref;
+		}
+
+		$base_sha = isset( $base_ref['object']['sha'] ) ? $base_ref['object']['sha'] : '';
+		if ( '' === $base_sha ) {
+			return new WP_Error( 'tour_github_missing_base_sha', __( 'GitHub did not return the base branch revision.', 'tour' ) );
+		}
+
+		$created_ref = self::github_api_request(
+			'POST',
+			$owner,
+			$repo,
+			'git/refs',
+			$token,
+			array(
+				'ref' => 'refs/heads/' . $new_branch,
+				'sha' => $base_sha,
+			)
+		);
+		if ( is_wp_error( $created_ref ) ) {
+			return $created_ref;
+		}
+
+		$updated_file = self::github_api_request(
+			'PUT',
+			$owner,
+			$repo,
+			'contents/' . $source['path'],
+			$token,
+			array(
+				'message' => sprintf(
+					/* translators: %s: Tour title. */
+					__( 'Fix tour: %s', 'tour' ),
+					$package['title']
+				),
+				'content' => base64_encode( $json ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- GitHub Contents API expects file contents base64 encoded.
+				'branch'  => $new_branch,
+				'sha'     => $source['sha'],
+			)
+		);
+		if ( is_wp_error( $updated_file ) ) {
+			return $updated_file;
+		}
+
+		$pull_request = self::github_api_request(
+			'POST',
+			$owner,
+			$repo,
+			'pulls',
+			$token,
+			array(
+				'title' => sprintf(
+					/* translators: %s: Tour title. */
+					__( 'Fix tour: %s', 'tour' ),
+					$package['title']
+				),
+				'body'  => __( 'This pull request updates a tour package exported from the Tours plugin.', 'tour' ),
+				'head'  => $new_branch,
+				'base'  => $base_branch,
+			)
+		);
+		if ( is_wp_error( $pull_request ) ) {
+			return $pull_request;
+		}
+
+		if ( empty( $pull_request['html_url'] ) ) {
+			return new WP_Error( 'tour_github_missing_pr_url', __( 'GitHub created a pull request but did not return its URL.', 'tour' ) );
+		}
+
+		return $pull_request['html_url'];
+	}
+
+	/**
+	 * Make a GitHub API request.
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $owner  Repository owner.
+	 * @param string $repo   Repository name.
+	 * @param string $path   API path.
+	 * @param string $token  GitHub token.
+	 * @param array  $body   Request body.
+	 * @return array|WP_Error Decoded response.
+	 */
+	private static function github_api_request( $method, $owner, $repo, $path, $token, $body = array() ) {
+		$url  = sprintf(
+			'https://api.github.com/repos/%1$s/%2$s/%3$s',
+			rawurlencode( $owner ),
+			rawurlencode( $repo ),
+			str_replace( '%2F', '/', rawurlencode( $path ) )
+		);
+		$args = array(
+			'method'  => $method,
+			'headers' => array(
+				'Accept'        => 'application/vnd.github+json',
+				'Authorization' => 'Bearer ' . $token,
+				'Content-Type'  => 'application/json',
+				'User-Agent'    => 'WordPress Tours Plugin',
+			),
+			'timeout' => 20,
+		);
+
+		if ( ! empty( $body ) ) {
+			$args['body'] = wp_json_encode( $body );
+		}
+
+		$response = wp_remote_request( $url, $args );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$status        = wp_remote_retrieve_response_code( $response );
+		$response_body = json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( $status < 200 || $status >= 300 ) {
+			$message = isset( $response_body['message'] ) ? $response_body['message'] : __( 'GitHub request failed.', 'tour' );
+			return new WP_Error( 'tour_github_request_failed', $message );
+		}
+
+		if ( ! is_array( $response_body ) ) {
+			return new WP_Error( 'tour_github_invalid_response', __( 'GitHub returned an invalid response.', 'tour' ) );
+		}
+
+		return $response_body;
+	}
+
+	/**
 	 * Get a stable package hash.
 	 *
 	 * @param array $package Package data.
@@ -1261,6 +1676,15 @@ class Tours {
 						<td>
 							<textarea class="large-text code" rows="6" id="tour_github_library_sources" name="tour_github_library_sources"><?php echo esc_textarea( get_option( 'tour_github_library_sources', '' ) ); ?></textarea>
 							<p class="description"><?php esc_html_e( 'Enter one source per line in the format owner/repo:path@ref, for example Automattic/tours:library@trunk.', 'tour' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="tour_github_token"><?php esc_html_e( 'GitHub access token', 'tour' ); ?></label>
+						</th>
+						<td>
+							<input class="regular-text" type="password" id="tour_github_token" name="tour_github_token" value="<?php echo esc_attr( get_option( 'tour_github_token', '' ) ); ?>" autocomplete="off" />
+							<p class="description"><?php esc_html_e( 'Used to create pull requests when submitting fixed GitHub-sourced tours.', 'tour' ); ?></p>
 						</td>
 					</tr>
 				</table>

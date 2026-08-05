@@ -8,6 +8,7 @@
 	margin: -6px;
 	position: absolute;
 	width: 12px;
+	z-index: 999998;
 }
 
 .pulse:focus {
