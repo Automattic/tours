@@ -15,5 +15,6 @@
 defined( 'ABSPATH' ) || die();
 define( 'TOURS_VERSION', '1.0' );
 
+require __DIR__ . '/class-tour-package.php';
 require __DIR__ . '/class-tours.php';
 Tours::register_hooks();

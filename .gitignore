@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 # Composer dev tools
 vendor/
+.phpunit.result.cache
 
 # Coverage directory used by tools like istanbul
 coverage
