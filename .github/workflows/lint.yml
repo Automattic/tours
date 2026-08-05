@@ -75,7 +75,7 @@ jobs:
 
     strategy:
       matrix:
-        node: ['16']
+        node: ['20']
 
     name: "JS ${{ matrix.node }}"
 
