@@ -28,6 +28,7 @@ class Tours {
 		add_shortcode( 'tour_list', array( $class, 'show_tour_list' ) );
 		add_action( 'admin_menu', array( $class, 'add_admin_menu' ) );
 		add_action( 'admin_post_tour_import_library_tour', array( $class, 'import_library_tour' ) );
+		add_action( 'admin_post_tour_reimport_library_tour', array( $class, 'reimport_library_tour' ) );
 		add_action( 'admin_post_tour_export_package', array( $class, 'export_tour_package' ) );
 		add_action( 'admin_post_tour_submit_github_fix', array( $class, 'submit_github_fix' ) );
 		add_action( 'wp_footer', array( $class, 'output_tour_button' ) );
@@ -351,26 +352,28 @@ class Tours {
 
 		if ( isset( $_POST['order'] ) ) {
 			foreach ( $_POST['order'] as $i ) {
-				if ( ! is_int( $i ) || $i < 0 ) {
+				if ( ! is_scalar( $i ) || ! preg_match( '/^\d+$/', (string) $i ) ) {
 					continue;
 				}
+				$i = (int) $i;
 				if ( ! isset( $_POST['tour'][ $i ] ) ) {
 					continue;
 				}
+				$step = $_POST['tour'][ $i ];
 
-				if ( ! isset( $_POST['tour'][ $i ]['element'] ) || '' === trim( $step['element'] ) ) {
+				if ( ! isset( $step['element'] ) || '' === trim( $step['element'] ) ) {
 					continue;
 				}
 
-				if ( ! isset( $_POST['tour'][ $i ]['popover'] ) ) {
+				if ( ! isset( $step['popover'] ) ) {
 					continue;
 				}
 
 				$tour[] = array(
-					'element' => sanitize_text_field( $_POST['tour'][ $i ]['element'] ),
+					'element' => sanitize_text_field( $step['element'] ),
 					'popover' => array(
-						'title'       => sanitize_text_field( $_POST['tour'][ $i ]['popover']['title'] ),
-						'description' => wp_kses_post( preg_replace( '/(\s|\x{00a0})+/siu', ' ', nl2br( $_POST['tour'][ $i ]['popover']['description'] ) ) ),
+						'title'       => sanitize_text_field( $step['popover']['title'] ),
+						'description' => wp_kses_post( preg_replace( '/(\s|\x{00a0})+/siu', ' ', nl2br( $step['popover']['description'] ) ) ),
 					),
 				);
 			}
@@ -688,6 +691,11 @@ class Tours {
 					<p><?php esc_html_e( 'Tour imported as a draft.', 'tour' ); ?></p>
 				</div>
 			<?php endif; ?>
+			<?php if ( isset( $_GET['reimported'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php esc_html_e( 'Tour reimported from the library.', 'tour' ); ?></p>
+				</div>
+			<?php endif; ?>
 			<?php if ( isset( $_GET['pr'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<div class="notice notice-success is-dismissible">
 					<p>
@@ -714,11 +722,11 @@ class Tours {
 							<th><?php esc_html_e( 'Action', 'tour' ); ?></th>
 						</tr>
 					</thead>
-					<tbody>
-						<?php foreach ( $library['items'] as $tour ) : ?>
-							<?php $imported_tour = self::get_imported_library_tour( $tour['id'] ); ?>
-							<tr>
-								<td><strong><?php echo esc_html( $tour['title'] ); ?></strong></td>
+						<tbody>
+							<?php foreach ( $library['items'] as $tour ) : ?>
+								<?php $imported_tour = self::get_imported_library_tour( $tour['id'], $tour['source_identity'] ); ?>
+								<tr>
+									<td><strong><?php echo esc_html( $tour['title'] ); ?></strong></td>
 								<td><?php echo esc_html( isset( $tour['description'] ) ? $tour['description'] : '' ); ?></td>
 								<td><?php echo esc_html( $tour['source_label'] ); ?></td>
 								<td>
@@ -734,6 +742,14 @@ class Tours {
 									<?php if ( $imported_tour ) : ?>
 										<a class="button" href="<?php echo esc_url( get_edit_post_link( $imported_tour->ID, '' ) ); ?>"><?php esc_html_e( 'Edit', 'tour' ); ?></a>
 										<a class="button" href="<?php echo esc_url( self::get_export_tour_package_url( $imported_tour->ID ) ); ?>"><?php esc_html_e( 'Export package', 'tour' ); ?></a>
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display: inline-block">
+											<input type="hidden" name="action" value="tour_reimport_library_tour" />
+											<input type="hidden" name="source" value="<?php echo esc_attr( $tour['source_key'] ); ?>" />
+											<input type="hidden" name="tour" value="<?php echo esc_attr( $tour['id'] ); ?>" />
+											<input type="hidden" name="post" value="<?php echo esc_attr( $imported_tour->ID ); ?>" />
+											<?php wp_nonce_field( 'tour_reimport_library_tour_' . $tour['id'] . '_' . $imported_tour->ID ); ?>
+											<?php submit_button( __( 'Reimport', 'tour' ), 'secondary small', 'submit', false ); ?>
+										</form>
 										<?php if ( self::is_github_imported_tour( $imported_tour ) ) : ?>
 											<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display: inline-block">
 												<input type="hidden" name="action" value="tour_submit_github_fix" />
@@ -810,6 +826,78 @@ class Tours {
 				array(
 					'page'     => 'tour-library',
 					'imported' => $post_id,
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Reimport a previously imported tour from the library.
+	 */
+	public static function reimport_library_tour() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to import tours.', 'tour' ) );
+		}
+
+		$tour_id = isset( $_POST['tour'] ) ? sanitize_key( wp_unslash( $_POST['tour'] ) ) : '';
+		$post_id = isset( $_POST['post'] ) ? absint( $_POST['post'] ) : 0;
+		check_admin_referer( 'tour_reimport_library_tour_' . $tour_id . '_' . $post_id );
+
+		$source = isset( $_POST['source'] ) ? sanitize_key( wp_unslash( $_POST['source'] ) ) : '';
+		if ( '' === $source || '' === $tour_id || ! $post_id ) {
+			wp_die( esc_html__( 'Invalid tour library source.', 'tour' ) );
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post || 'tour' !== $post->post_type ) {
+			wp_die( esc_html__( 'The requested tour was not found.', 'tour' ) );
+		}
+
+		$package_id = get_post_meta( $post_id, '_tour_package_id', true );
+		if ( $tour_id !== $package_id ) {
+			wp_die( esc_html__( 'The requested tour does not match the library package.', 'tour' ) );
+		}
+
+		$package = self::get_library_tour_package( $source, $tour_id );
+		if ( is_wp_error( $package ) ) {
+			wp_die( esc_html( $package->get_error_message() ) );
+		}
+
+		$package_source = isset( $package['source'] ) ? self::get_package_source_identity( $package['source'] ) : array();
+		$stored_source  = get_post_meta( $post_id, '_tour_package_source', true );
+		if ( ! self::library_sources_match( $package_source, $stored_source ) ) {
+			wp_die( esc_html__( 'The requested tour does not match the library source.', 'tour' ) );
+		}
+
+		$tour_steps = Tour_Package::package_to_tour_steps( $package );
+		if ( is_wp_error( $tour_steps ) ) {
+			wp_die( esc_html( $tour_steps->get_error_message() ) );
+		}
+
+		$updated = wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_title'   => $package['title'],
+				'post_content' => wp_json_encode( $tour_steps, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
+			),
+			true
+		);
+
+		if ( is_wp_error( $updated ) ) {
+			wp_die( esc_html( $updated->get_error_message() ) );
+		}
+
+		update_post_meta( $post_id, '_tour_package_id', $package['id'] );
+		update_post_meta( $post_id, '_tour_package_source', $package['source'] );
+		update_post_meta( $post_id, '_tour_package_imported_hash', self::get_package_hash( $package ) );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'       => 'tour-library',
+					'reimported' => $post_id,
 				),
 				admin_url( 'admin.php' )
 			)
@@ -933,15 +1021,77 @@ class Tours {
 			}
 
 			foreach ( $catalog['tours'] as $tour ) {
-				$tour['source_key']   = $source['key'];
-				$tour['source_label'] = $source['label'];
-				$items[]              = $tour;
+				$tour['source_key']      = $source['key'];
+				$tour['source_label']    = $source['label'];
+				$tour['source_identity'] = self::get_library_tour_source_identity( $source, $tour );
+				$items[]                 = $tour;
 			}
 		}
 
 		return array(
 			'items'  => $items,
 			'errors' => $errors,
+		);
+	}
+
+	/**
+	 * Get a stable source identity for a catalog tour.
+	 *
+	 * @param array $source Library source.
+	 * @param array $tour   Catalog tour.
+	 * @return array Source identity.
+	 */
+	private static function get_library_tour_source_identity( $source, $tour ) {
+		if ( 'bundled' === $source['type'] ) {
+			return array(
+				'type' => 'bundled',
+				'path' => 'library/tours/' . ltrim( $tour['path'], '/' ),
+			);
+		}
+
+		if ( 'github' === $source['type'] ) {
+			return array(
+				'type' => 'github',
+				'repo' => $source['owner'] . '/' . $source['repo'],
+				'path' => $source['path'] . '/' . ltrim( $tour['path'], '/' ),
+				'ref'  => $source['ref'],
+			);
+		}
+
+		return array(
+			'type' => isset( $source['type'] ) ? $source['type'] : '',
+		);
+	}
+
+	/**
+	 * Get a stable source identity from imported package source metadata.
+	 *
+	 * @param array $source Package source.
+	 * @return array Source identity.
+	 */
+	private static function get_package_source_identity( $source ) {
+		if ( ! is_array( $source ) || empty( $source['type'] ) ) {
+			return array();
+		}
+
+		if ( 'bundled' === $source['type'] ) {
+			return array(
+				'type' => 'bundled',
+				'path' => isset( $source['path'] ) ? $source['path'] : '',
+			);
+		}
+
+		if ( 'github' === $source['type'] ) {
+			return array(
+				'type' => 'github',
+				'repo' => isset( $source['repo'] ) ? $source['repo'] : '',
+				'path' => isset( $source['path'] ) ? $source['path'] : '',
+				'ref'  => isset( $source['ref'] ) ? $source['ref'] : '',
+			);
+		}
+
+		return array(
+			'type' => $source['type'],
 		);
 	}
 
@@ -1224,23 +1374,52 @@ class Tours {
 	}
 
 	/**
-	 * Get an imported tour by package id.
+	 * Get an imported tour by package id and source.
 	 *
-	 * @param string $package_id Package id.
+	 * @param string $package_id      Package id.
+	 * @param array  $source_identity Source identity.
 	 * @return WP_Post|null Imported post.
 	 */
-	private static function get_imported_library_tour( $package_id ) {
+	private static function get_imported_library_tour( $package_id, $source_identity ) {
 		$posts = get_posts(
 			array(
 				'post_type'      => 'tour',
 				'post_status'    => array( 'publish', 'draft' ),
-				'posts_per_page' => 1,
+				'posts_per_page' => -1,
 				'meta_key'       => '_tour_package_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 				'meta_value'     => $package_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			)
 		);
 
-		return empty( $posts ) ? null : $posts[0];
+		foreach ( $posts as $post ) {
+			if ( self::library_sources_match( $source_identity, get_post_meta( $post->ID, '_tour_package_source', true ) ) ) {
+				return $post;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Check whether stored source metadata matches a stable source identity.
+	 *
+	 * @param array $source_identity Source identity.
+	 * @param mixed $stored_source   Stored source metadata.
+	 * @return bool Whether sources match.
+	 */
+	private static function library_sources_match( $source_identity, $stored_source ) {
+		if ( ! is_array( $source_identity ) || empty( $source_identity['type'] ) || ! is_array( $stored_source ) ) {
+			return false;
+		}
+
+		$stored_source_identity = self::get_package_source_identity( $stored_source );
+		foreach ( $source_identity as $key => $value ) {
+			if ( ! isset( $stored_source_identity[ $key ] ) || $value !== $stored_source_identity[ $key ] ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
