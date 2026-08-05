@@ -115,6 +115,22 @@ class Tours {
 	}
 
 	/**
+	 * Check whether the current user can modify the tour in a REST request.
+	 *
+	 * @param WP_REST_Request $request The REST request.
+	 *
+	 * @return bool Whether the current user can modify the requested tour.
+	 */
+	public static function current_user_can_modify_requested_tour( WP_REST_Request $request ) {
+		$tour = get_post( (int) $request->get_param( 'tour' ) );
+		if ( ! $tour || 'tour' !== $tour->post_type ) {
+			return false;
+		}
+
+		return current_user_can( 'edit_post', $tour->ID ) && current_user_can( 'publish_posts' );
+	}
+
+	/**
 	 * Initialize the REST API endpoints.
 	 */
 	public static function rest_api_init() {
@@ -197,9 +213,7 @@ class Tours {
 						'success' => false,
 					);
 				},
-				'permission_callback' => function () {
-					return current_user_can( 'edit_others_posts' );
-				},
+				'permission_callback' => array( get_called_class(), 'current_user_can_modify_requested_tour' ),
 			)
 		);
 
@@ -209,11 +223,6 @@ class Tours {
 			array(
 				'methods'             => 'POST',
 				'callback'            => function ( WP_REST_Request $request ) {
-					if ( ! current_user_can( 'edit_others_posts' ) ) {
-						return array(
-							'success' => false,
-						);
-					}
 					$steps = json_decode( $request->get_param( 'steps' ), true );
 					if ( ! isset( $steps[0]['title'] ) ) {
 						return array(
@@ -247,9 +256,7 @@ class Tours {
 
 					return $tour_id;
 				},
-				'permission_callback' => function () {
-					return current_user_can( 'edit_others_posts' );
-				},
+				'permission_callback' => array( get_called_class(), 'current_user_can_modify_requested_tour' ),
 			)
 		);
 	}
