@@ -28,6 +28,7 @@ class Tours {
 		add_shortcode( 'tour_list', array( $class, 'show_tour_list' ) );
 		add_action( 'admin_menu', array( $class, 'add_admin_menu' ) );
 		add_action( 'admin_post_tour_import_library_tour', array( $class, 'import_library_tour' ) );
+		add_action( 'admin_post_tour_export_package', array( $class, 'export_tour_package' ) );
 		add_action( 'wp_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'admin_footer', array( $class, 'output_tour_button' ) );
 		add_action( 'gp_footer', array( $class, 'output_tour_button' ) );
@@ -276,6 +277,7 @@ class Tours {
 		$caption = __( 'Add more steps', 'tour' );
 
 		$actions['add-more-steps'] = '<a href="' . get_permalink( $post->ID ) . '" data-tour-id="' . esc_attr( $post->ID ) . '" data-add-more-steps-text="' . esc_attr( $caption ) . '" data-finish-tour-creation-text="' . esc_attr( __( 'Finish tour creating the tour', ' tour' ) ) . '" title="' . esc_attr( $caption ) . '">' . esc_html( $caption ) . '</a>';
+		$actions['export-package'] = '<a href="' . esc_url( self::get_export_tour_package_url( $post->ID ) ) . '">' . esc_html__( 'Export package', 'tour' ) . '</a>';
 		return $actions;
 	}
 
@@ -694,7 +696,7 @@ class Tours {
 								<td>
 									<?php
 									if ( $imported_tour ) {
-										esc_html_e( 'Imported', 'tour' );
+										echo esc_html( self::get_imported_tour_status_label( $imported_tour ) );
 									} else {
 										esc_html_e( 'Not imported', 'tour' );
 									}
@@ -703,6 +705,7 @@ class Tours {
 								<td>
 									<?php if ( $imported_tour ) : ?>
 										<a class="button" href="<?php echo esc_url( get_edit_post_link( $imported_tour->ID, '' ) ); ?>"><?php esc_html_e( 'Edit', 'tour' ); ?></a>
+										<a class="button" href="<?php echo esc_url( self::get_export_tour_package_url( $imported_tour->ID ) ); ?>"><?php esc_html_e( 'Export package', 'tour' ); ?></a>
 									<?php else : ?>
 										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 											<input type="hidden" name="action" value="tour_import_library_tour" />
@@ -775,6 +778,35 @@ class Tours {
 				admin_url( 'admin.php' )
 			)
 		);
+		exit;
+	}
+
+	/**
+	 * Export a tour package.
+	 */
+	public static function export_tour_package() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to export tours.', 'tour' ) );
+		}
+
+		$post_id = isset( $_GET['tour'] ) ? absint( $_GET['tour'] ) : 0;
+		check_admin_referer( 'tour_export_package_' . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || 'tour' !== $post->post_type ) {
+			wp_die( esc_html__( 'The requested tour was not found.', 'tour' ) );
+		}
+
+		$package = self::get_package_for_tour_post( $post );
+		if ( is_wp_error( $package ) ) {
+			wp_die( esc_html( $package->get_error_message() ) );
+		}
+
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $package['id'] . '.json' ) . '"' );
+
+		echo wp_json_encode( $package, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit;
 	}
 
@@ -859,6 +891,71 @@ class Tours {
 		);
 
 		return empty( $posts ) ? null : $posts[0];
+	}
+
+	/**
+	 * Get the status label for an imported tour.
+	 *
+	 * @param WP_Post $post Imported tour post.
+	 * @return string Status label.
+	 */
+	private static function get_imported_tour_status_label( $post ) {
+		$imported_hash = get_post_meta( $post->ID, '_tour_package_imported_hash', true );
+		$package       = self::get_package_for_tour_post( $post );
+		if ( is_wp_error( $package ) || ! $imported_hash ) {
+			return __( 'Imported', 'tour' );
+		}
+
+		if ( self::get_package_hash( $package ) !== $imported_hash ) {
+			return __( 'Modified locally', 'tour' );
+		}
+
+		return __( 'Imported', 'tour' );
+	}
+
+	/**
+	 * Get the export URL for a tour package.
+	 *
+	 * @param int $post_id Tour post id.
+	 * @return string Export URL.
+	 */
+	private static function get_export_tour_package_url( $post_id ) {
+		return wp_nonce_url(
+			add_query_arg(
+				array(
+					'action' => 'tour_export_package',
+					'tour'   => $post_id,
+				),
+				admin_url( 'admin-post.php' )
+			),
+			'tour_export_package_' . $post_id
+		);
+	}
+
+	/**
+	 * Convert a tour post into a package.
+	 *
+	 * @param WP_Post $post Tour post.
+	 * @return array|WP_Error Package data.
+	 */
+	private static function get_package_for_tour_post( $post ) {
+		$tour_steps = self::json_decode( $post->post_content );
+		if ( ! is_array( $tour_steps ) ) {
+			return new WP_Error( 'tour_export_invalid_json', __( 'The tour does not contain valid JSON.', 'tour' ) );
+		}
+
+		$args       = array();
+		$package_id = get_post_meta( $post->ID, '_tour_package_id', true );
+		if ( $package_id ) {
+			$args['id'] = $package_id;
+		}
+
+		$source = get_post_meta( $post->ID, '_tour_package_source', true );
+		if ( is_array( $source ) ) {
+			$args['source'] = $source;
+		}
+
+		return Tour_Package::tour_steps_to_package( $tour_steps, $args );
 	}
 
 	/**
