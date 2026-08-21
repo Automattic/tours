@@ -85,6 +85,42 @@ class Tours {
 	}
 
 	/**
+	 * Sanitize a decoded tour structure field-by-field, for the context each field is rendered in.
+	 *
+	 * @param      array $tour  The decoded tour (untrusted).
+	 *
+	 * @return     array  The sanitized tour.
+	 */
+	private static function sanitize_tour( $tour ) {
+		$sanitized = array();
+
+		if ( isset( $tour[0] ) && is_array( $tour[0] ) ) {
+			$color       = isset( $tour[0]['color'] ) ? $tour[0]['color'] : '';
+			$sanitized[] = array(
+				'color' => ( is_string( $color ) && preg_match( '/^#[0-9a-fA-F]{3,8}$/', $color ) ) ? $color : '#3939c7',
+				'title' => sanitize_text_field( isset( $tour[0]['title'] ) ? $tour[0]['title'] : '' ),
+			);
+		}
+
+		for ( $i = 1, $count = count( $tour ); $i < $count; $i++ ) {
+			$step = $tour[ $i ];
+			if ( ! is_array( $step ) || ! isset( $step['element'] ) || ! isset( $step['popover'] ) || ! is_array( $step['popover'] ) ) {
+				continue;
+			}
+
+			$sanitized[] = array(
+				'element' => sanitize_text_field( is_array( $step['element'] ) ? '' : $step['element'] ),
+				'popover' => array(
+					'title'       => sanitize_text_field( isset( $step['popover']['title'] ) ? $step['popover']['title'] : '' ),
+					'description' => wp_kses_post( isset( $step['popover']['description'] ) ? $step['popover']['description'] : '' ),
+				),
+			);
+		}
+
+		return $sanitized;
+	}
+
+	/**
 	 * Register the post type.
 	 */
 	public static function register_post_type() {
@@ -348,7 +384,11 @@ class Tours {
 		);
 
 		if ( isset( $_POST['override_json'] ) ) {
-			$data['post_content'] = wp_kses_post( $_POST['json'] );
+			$tour = json_decode( wp_unslash( $_POST['json'] ), true );
+			if ( ! is_array( $tour ) ) {
+				return $data;
+			}
+			$data['post_content'] = wp_json_encode( wp_slash( self::sanitize_tour( $tour ) ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 			return $data;
 		}
 
