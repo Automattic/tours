@@ -1,12 +1,12 @@
 # Tours
 
-- Contributors: akirk, amieiro, psrpinto, spiraltee, lidialab, piermario
+- Contributors: akirk, amieiro, psrpinto, spiraltee, lidialab, piermario, Automattic
 - Tags: tours
 - Requires at least: 5.0
 - Tested up to: 6.5
 - Requires PHP: 5.6
 - License: GPLv2 or later
-- Stable tag: 1.0.0
+- Stable tag: 1.0.1
 
 Create tours for your site, these tours can be activated by the user by clicking colored glowing buttons.
 
@@ -35,6 +35,13 @@ https://vimeo.com/953923624
 
 
 ## Changelog
+
+### 1.0.1
+
+- Allow keyboard triggering and focus of the pulse
+- Add video url to readme
+- Fix stored XSS in tour 'Override when saving' path
+- Update dependencies
 
 ### 1.0.0
 Initial Release
