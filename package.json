@@ -21,7 +21,7 @@
 		"@wordpress/components": "^38.0.0",
 		"@wordpress/eslint-plugin": "^25.8.0",
 		"@wordpress/i18n": "^6.25.0",
-		"@wordpress/scripts": "^32.6.0",
+		"@wordpress/scripts": "^37.0.0",
 		"@wordpress/server-side-render": "^6.28.0"
 	},
 	"overrides": {
